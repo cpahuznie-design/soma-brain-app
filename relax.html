@@ -610,154 +610,200 @@ function renderCalmStreak() {
   document.getElementById('calmStreak').textContent = '🌿 Streak: ' + streak + ' hari tenang (level <5)';
 }
 
-// === Breathing Exercise ===
+// === Breathing Exercise (REWRITE — clean state machine) ===
 var breathTechniques = {
-  '478': [{ name: 'Tarik Napas', dur: 4, scale: 1.8, sound: 'inhale' }, { name: 'Tahan', dur: 7, scale: 1.8, sound: 'hold' }, { name: 'Hembuskan', dur: 8, scale: 1.0, sound: 'exhale' }],
-  'box': [{ name: 'Tarik Napas', dur: 4, scale: 1.8, sound: 'inhale' }, { name: 'Tahan', dur: 4, scale: 1.8, sound: 'hold' }, { name: 'Hembuskan', dur: 4, scale: 1.0, sound: 'exhale' }, { name: 'Tahan', dur: 4, scale: 1.0, sound: 'hold' }],
-  'calm': [{ name: 'Tarik Napas', dur: 4, scale: 1.8, sound: 'inhale' }, { name: 'Hembuskan', dur: 6, scale: 1.0, sound: 'exhale' }]
+  '478': [
+    { name: 'Tarik Napas', dur: 4, scale: 1.8, sound: 'inhale', color: '#2dd4bf' },
+    { name: 'Tahan', dur: 7, scale: 1.8, sound: 'hold', color: '#67e8f9' },
+    { name: 'Hembuskan', dur: 8, scale: 1.0, sound: 'exhale', color: '#a5b4fc' }
+  ],
+  'box': [
+    { name: 'Tarik Napas', dur: 4, scale: 1.8, sound: 'inhale', color: '#2dd4bf' },
+    { name: 'Tahan', dur: 4, scale: 1.8, sound: 'hold', color: '#67e8f9' },
+    { name: 'Hembuskan', dur: 4, scale: 1.0, sound: 'exhale', color: '#a5b4fc' },
+    { name: 'Tahan', dur: 4, scale: 1.0, sound: 'hold', color: '#67e8f9' }
+  ],
+  'calm': [
+    { name: 'Tarik Napas', dur: 4, scale: 1.8, sound: 'inhale', color: '#2dd4bf' },
+    { name: 'Hembuskan', dur: 6, scale: 1.0, sound: 'exhale', color: '#a5b4fc' }
+  ]
 };
-var currentBreath = '478';
-var breathRunning = false;
-var breathPaused = false;
-var breathPhase = 0;
-var breathCountdown = 0;
-var breathCycles = 0;
-var breathInterval = null;
-var breathAudioCtx = null;
-var breathSoundEnabled = true;
+var breathState = {
+  technique: '478',
+  running: false,
+  paused: false,
+  phaseIdx: 0,
+  secondsLeft: 0,
+  cycles: 0,
+  timer: null,
+  audioCtx: null
+};
 
 function selectBreath(tech) {
-  currentBreath = tech;
-  document.querySelectorAll('#breath478, #breathBox, #breathCalm').forEach(function(b) { b.classList.remove('active'); });
-  if (tech === '478') document.getElementById('breath478').classList.add('active');
-  else if (tech === 'box') document.getElementById('breathBox').classList.add('active');
-  else if (tech === 'calm') document.getElementById('breathCalm').classList.add('active');
+  breathState.technique = tech;
+  var btns = { '478': 'breath478', 'box': 'breathBox', 'calm': 'breathCalm' };
+  Object.keys(btns).forEach(function(k) {
+    var el = document.getElementById(btns[k]);
+    if (el) el.classList.remove('active');
+  });
+  var activeBtn = document.getElementById(btns[tech]);
+  if (activeBtn) activeBtn.classList.add('active');
 }
 
-// Audio per fase breathing
 function playBreathSound(type) {
-  if (!breathSoundEnabled) return;
   try {
-    if (!breathAudioCtx) breathAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    var ctx = breathAudioCtx;
+    if (!breathState.audioCtx) {
+      breathState.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    var ctx = breathState.audioCtx;
     var now = ctx.currentTime;
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
 
     if (type === 'inhale') {
-      // Rising tone — suara naik untuk tarik napas
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = 'sine';
+      // Suara naik (220→440Hz) selama 3.5 detik — seperti tarik napas dalam
       osc.frequency.setValueAtTime(220, now);
       osc.frequency.exponentialRampToValueAtTime(440, now + 3);
       gain.gain.setValueAtTime(0.001, now);
-      gain.gain.exponentialRampToValueAtTime(0.15, now + 0.5);
+      gain.gain.exponentialRampToValueAtTime(0.15, now + 0.3);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 3.5);
-      osc.start(now); osc.stop(now + 3.5);
+      osc.start(now);
+      osc.stop(now + 3.5);
     } else if (type === 'exhale') {
-      // Falling tone — suara turun untuk hembuskan
-      var osc2 = ctx.createOscillator();
-      var gain2 = ctx.createGain();
-      osc2.connect(gain2); gain2.connect(ctx.destination);
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(440, now);
-      osc2.frequency.exponentialRampToValueAtTime(165, now + 4);
-      gain2.gain.setValueAtTime(0.001, now);
-      gain2.gain.exponentialRampToValueAtTime(0.12, now + 0.5);
-      gain2.gain.exponentialRampToValueAtTime(0.001, now + 5);
-      osc2.start(now); osc2.stop(now + 5);
+      // Suara turun (440→165Hz) selama 5 detik — seperti hembuskan pelan
+      osc.frequency.setValueAtTime(440, now);
+      osc.frequency.exponentialRampToValueAtTime(165, now + 4);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.exponentialRampToValueAtTime(0.12, now + 0.3);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 5);
+      osc.start(now);
+      osc.stop(now + 5);
     } else if (type === 'hold') {
-      // Steady low tone — suara datar untuk tahan napas
-      var osc3 = ctx.createOscillator();
-      var gain3 = ctx.createGain();
-      osc3.connect(gain3); gain3.connect(ctx.destination);
-      osc3.type = 'sine';
-      osc3.frequency.setValueAtTime(330, now);
-      gain3.gain.setValueAtTime(0.001, now);
-      gain3.gain.exponentialRampToValueAtTime(0.08, now + 0.3);
-      gain3.gain.setValueAtTime(0.08, now + 2);
-      gain3.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
-      osc3.start(now); osc3.stop(now + 2.5);
+      // Suara datar rendah (330Hz) selama 2.5 detik — seperti menahan napas
+      osc.frequency.setValueAtTime(330, now);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.exponentialRampToValueAtTime(0.06, now + 0.3);
+      gain.gain.setValueAtTime(0.06, now + 2);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
+      osc.start(now);
+      osc.stop(now + 2.5);
     }
-  } catch(e) {}
+  } catch(e) {
+    console.log('Audio error:', e);
+  }
 }
 
 function startBreathing() {
-  if (breathRunning) return;
-  breathRunning = true;
-  breathPaused = false;
-  breathPhase = 0;
-  breathCountdown = 0;
-  breathCycles = 0;
+  if (breathState.running) return;
+  breathState.running = true;
+  breathState.paused = false;
+  breathState.phaseIdx = 0;
+  breathState.secondsLeft = 0;
+  breathState.cycles = 0;
+  
   document.getElementById('breathStart').style.display = 'none';
   document.getElementById('breathPause').style.display = 'inline-block';
   document.getElementById('breathStop').style.display = 'inline-block';
   document.getElementById('breathMessage').textContent = '';
-  breathTick();
+  document.getElementById('cycleCount').textContent = '0';
+  
+  // Langsung mulai fase pertama
+  enterPhase();
 }
 
-function breathTick() {
-  if (!breathRunning || breathPaused) return;
-  var phases = breathTechniques[currentBreath];
-  var phase = phases[breathPhase];
-
-  if (breathCountdown === 0) {
-    // Fase baru — set durasi, update visual, mainkan suara
-    breathCountdown = phase.dur;
-    var circle = document.getElementById('breathC');
-    if (circle) circle.setAttribute('r', String(50 * phase.scale));
-    document.getElementById('breathText').textContent = phase.name + '...';
-    document.getElementById('breathPhaseLabel').textContent = phase.name;
-    // Mainkan suara sesuai fase
-    playBreathSound(phase.sound);
-    // Warna circle sesuai fase
-    if (phase.sound === 'inhale') {
-      if (circle) circle.setAttribute('stroke', '#2dd4bf');
-    } else if (phase.sound === 'exhale') {
-      if (circle) circle.setAttribute('stroke', '#a5b4fc');
-    } else {
-      if (circle) circle.setAttribute('stroke', '#67e8f9');
-    }
+function enterPhase() {
+  var phases = breathTechniques[breathState.technique];
+  var phase = phases[breathState.phaseIdx];
+  
+  // Set durasi countdown untuk fase ini
+  breathState.secondsLeft = phase.dur;
+  
+  // Update visual
+  var circle = document.getElementById('breathC');
+  if (circle) {
+    circle.setAttribute('r', String(50 * phase.scale));
+    circle.setAttribute('stroke', phase.color);
   }
+  document.getElementById('breathText').textContent = phase.name + '...';
+  
+  var labelEl = document.getElementById('breathPhaseLabel');
+  if (labelEl) labelEl.textContent = phase.name;
+  
+  document.getElementById('breathCount').textContent = phase.dur;
+  
+  // Mainkan audio sesuai fase
+  playBreathSound(phase.sound);
+  
+  // Mulai countdown untuk fase ini
+  runCountdown();
+}
 
-  document.getElementById('breathCount').textContent = breathCountdown;
-  breathCountdown--;
-
-  if (breathCountdown < 0) {
-    breathPhase++;
-    breathCountdown = 0;
-    if (breathPhase >= phases.length) {
-      breathPhase = 0;
-      breathCycles++;
-      document.getElementById('cycleCount').textContent = breathCycles;
-      if (breathCycles === 4) {
+function runCountdown() {
+  if (!breathState.running || breathState.paused) return;
+  
+  if (breathState.secondsLeft > 0) {
+    document.getElementById('breathCount').textContent = breathState.secondsLeft;
+    breathState.secondsLeft--;
+    breathState.timer = setTimeout(runCountdown, 1000);
+  } else {
+    // Fase selesai, lanjut ke fase berikutnya
+    breathState.phaseIdx++;
+    var phases = breathTechniques[breathState.technique];
+    
+    if (breathState.phaseIdx >= phases.length) {
+      // Satu siklus selesai
+      breathState.phaseIdx = 0;
+      breathState.cycles++;
+      document.getElementById('cycleCount').textContent = breathState.cycles;
+      
+      if (breathState.cycles >= 4) {
         document.getElementById('breathMessage').textContent = 'Alhamdulillah! Anda merasa lebih tenang? 🌿';
       }
     }
+    
+    // Masuk fase berikutnya
+    enterPhase();
   }
-  breathInterval = setTimeout(breathTick, 1000);
 }
 
 function pauseBreathing() {
-  if (breathPaused) {
-    breathPaused = false;
+  if (breathState.paused) {
+    // Resume
+    breathState.paused = false;
     document.getElementById('breathPause').textContent = 'Pause';
-    breathTick();
+    runCountdown();
   } else {
-    breathPaused = true;
+    // Pause
+    breathState.paused = true;
     document.getElementById('breathPause').textContent = 'Resume';
-    if (breathInterval) clearTimeout(breathInterval);
+    if (breathState.timer) {
+      clearTimeout(breathState.timer);
+      breathState.timer = null;
+    }
   }
 }
 
 function stopBreathing() {
-  breathRunning = false;
-  breathPaused = false;
-  if (breathInterval) clearTimeout(breathInterval);
+  breathState.running = false;
+  breathState.paused = false;
+  if (breathState.timer) {
+    clearTimeout(breathState.timer);
+    breathState.timer = null;
+  }
+  
   var circle = document.getElementById('breathC');
-  if (circle) { circle.setAttribute('r', '50'); circle.setAttribute('stroke', '#2dd4bf'); }
+  if (circle) {
+    circle.setAttribute('r', '50');
+    circle.setAttribute('stroke', '#2dd4bf');
+  }
   document.getElementById('breathText').textContent = 'Tekan Start';
-  document.getElementById('breathPhaseLabel').textContent = '';
+  
+  var labelEl = document.getElementById('breathPhaseLabel');
+  if (labelEl) labelEl.textContent = '';
+  
   document.getElementById('breathCount').textContent = '';
   document.getElementById('breathStart').style.display = 'inline-block';
   document.getElementById('breathPause').style.display = 'none';
