@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soma — Focus Therapy</title>
+<style>
+:root {
+  --bg-deep: #0f172a;
+  --bg-mid: #1e3a5f;
+  --card: #1e293b;
+  --card-hover: #243550;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --teal: #0d9488;
+  --teal-bright: #2dd4bf;
+  --soft-blue: #38bdf8;
+  --lavender: #a5b4fc;
+  --lavender-light: #c7d2fe;
+  --purple: #8b5cf6;
+  --border: rgba(56, 189, 248, 0.12);
+  --glow-teal: 0 0 24px rgba(13, 148, 136, 0.18);
+  --glow-blue: 0 0 24px rgba(56, 189, 248, 0.15);
+  --radius: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background: radial-gradient(ellipse at top, #1e3a5f 0%, #0f172a 70%);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(13, 148, 136, 0.08), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.06), transparent 50%),
+    radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.05), transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: drift 20s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-10px, 10px); }
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* NAVBAR */
+.navbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 14px 16px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 24px;
+  justify-content: center;
+  position: sticky;
+  top: 12px;
+  z-index: 100;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.navbar a {
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.navbar a:hover {
+  color: var(--text);
+  background: rgba(56, 189, 248, 0.1);
+  box-shadow: var(--glow-blue);
+}
+
+.navbar a.active {
+  color: var(--teal-bright);
+  background: rgba(13, 148, 136, 0.12);
+  box-shadow: var(--glow-teal);
+}
+
+.page-header { text-align: center; margin-bottom: 28px; }
+
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--teal-bright), var(--soft-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px;
+}
+
+.page-header p { color: var(--text-muted); font-size: 0.95rem; }
+
+/* CARD */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--glow-teal);
+  transition: all 0.4s ease;
+}
+
+.card:hover {
+  box-shadow: 0 0 32px rgba(13, 148, 136, 0.25);
+  border-color: rgba(45, 212, 191, 0.3);
+}
+
+.card h2 {
+  font-size: 1.25rem;
+  margin-bottom: 16px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card h2 .icon { font-size: 1.4rem; }
+
+label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  margin-top: 12px;
+}
+
+input[type="text"], textarea, select {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+input[type="text"]:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: var(--glow-teal);
+}
+
+textarea { resize: vertical; min-height: 70px; }
+
+/* SLIDER */
+input[type="range"] {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: rgba(56, 189, 248, 0.15);
+  border-radius: 3px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--teal-bright);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.6);
+  transition: all 0.3s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--teal-bright);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.6);
+}
+
+/* BUTTONS */
+.btn {
+  display: inline-block;
+  padding: 10px 24px;
+  background: linear-gradient(135deg, var(--teal), #0f766e);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 16px;
+}
+
+.btn:hover { transform: scale(1.03); box-shadow: 0 0 24px rgba(13, 148, 136, 0.5); }
+.btn:active { transform: scale(0.98); }
+
+.btn.secondary {
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: var(--soft-blue);
+}
+
+.btn.secondary:hover { box-shadow: var(--glow-blue); }
+
+.btn.danger {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+.btn.danger:hover { box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+@media (max-width: 600px) {
+  .row, .row-3 { grid-template-columns: 1fr; }
+  .navbar { justify-content: flex-start; overflow-x: auto; }
+  .page-header h1 { font-size: 1.5rem; }
+}
+
+/* POMODORO */
+.pomodoro-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.mode-tabs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
+.mode-tab {
+  padding: 8px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.5);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.mode-tab:hover { color: var(--text); border-color: rgba(56, 189, 248, 0.3); }
+
+.mode-tab.active {
+  background: rgba(13, 148, 136, 0.15);
+  border-color: var(--teal);
+  color: var(--teal-bright);
+  box-shadow: var(--glow-teal);
+}
+
+.pomo-svg-wrap {
+  position: relative;
+  width: 260px;
+  height: 260px;
+}
+
+.pomo-svg-wrap svg { width: 100%; height: 100%; }
+
+.pomo-time {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.pomo-time .digits {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: var(--teal-bright);
+  text-shadow: 0 0 20px rgba(45, 212, 191, 0.4);
+  letter-spacing: 2px;
+}
+
+.pomo-time .label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.pomo-controls { display: flex; gap: 12px; }
+
+.pomo-stats {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.pomo-stat {
+  text-align: center;
+  padding: 10px 20px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.pomo-stat .val {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--lavender-light);
+}
+
+.pomo-stat .lbl {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* TRAINING */
+.training-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.training-tab {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.5);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.training-tab:hover { color: var(--text); }
+
+.training-tab.active {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: var(--purple);
+  color: var(--lavender);
+  box-shadow: 0 0 16px rgba(139, 92, 246, 0.2);
+}
+
+.training-panel {
+  display: none;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.training-panel.active { display: block; }
+
+.training-arena {
+  width: 100%;
+  min-height: 280px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.dot-focus-point {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--teal-bright);
+  box-shadow: 0 0 30px rgba(45, 212, 191, 0.8), 0 0 60px rgba(45, 212, 191, 0.4);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.8; }
+}
+
+.countdown-number {
+  font-size: 5rem;
+  font-weight: 900;
+  color: var(--teal-bright);
+  text-shadow: 0 0 40px rgba(45, 212, 191, 0.5);
+  animation: fadeNum 0.5s ease;
+}
+
+@keyframes fadeNum {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.reaction-wait {
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.reaction-go {
+  background: #22c55e !important;
+  cursor: pointer;
+}
+
+.reaction-go-text {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.reaction-result-text {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--teal-bright);
+}
+
+.training-meta {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 12px;
+}
+
+.dur-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.5);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.82rem;
+  transition: all 0.3s ease;
+  margin: 4px;
+}
+
+.dur-btn:hover { color: var(--text); }
+.dur-btn.active {
+  background: rgba(13, 148, 136, 0.15);
+  border-color: var(--teal);
+  color: var(--teal-bright);
+}
+
+.best-score {
+  margin-top: 14px;
+  padding: 10px 16px;
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 10px;
+  font-size: 0.88rem;
+  color: var(--lavender);
+  text-align: center;
+}
+
+.reaction-rounds {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.round-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: rgba(56, 189, 248, 0.2);
+  transition: all 0.3s ease;
+}
+
+.round-dot.done { background: var(--teal-bright); box-shadow: 0 0 8px rgba(45, 212, 191, 0.6); }
+
+/* FOCUS LEVEL */
+.focus-emoji-display {
+  font-size: 3rem;
+  text-align: center;
+  margin: 8px 0;
+  transition: all 0.3s ease;
+}
+
+.focus-level-val {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--teal-bright);
+  margin-bottom: 8px;
+}
+
+.bar-chart { width: 100%; margin-top: 12px; }
+
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: rgba(45, 212, 191, 0.1);
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  border-radius: 20px;
+  color: var(--teal-bright);
+  font-weight: 600;
+  margin-top: 12px;
+}
+
+/* NOISE GENERATOR */
+.sound-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.sound-btn {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text);
+}
+
+.sound-btn:hover {
+  border-color: var(--teal);
+  box-shadow: var(--glow-teal);
+  transform: translateY(-2px);
+}
+
+.sound-btn.playing {
+  border-color: var(--teal-bright);
+  box-shadow: 0 0 24px rgba(45, 212, 191, 0.4);
+  background: rgba(13, 148, 136, 0.12);
+}
+
+.sound-btn .sound-icon { font-size: 1.8rem; display: block; margin-bottom: 6px; }
+.sound-btn .sound-name { font-size: 0.82rem; color: var(--text-muted); }
+.sound-btn.playing .sound-name { color: var(--teal-bright); }
+
+.wave-viz {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 60px;
+  margin-top: 16px;
+}
+
+.wave-viz .bar {
+  width: 4px;
+  height: 10px;
+  background: var(--teal);
+  border-radius: 2px;
+  opacity: 0.3;
+  transition: all 0.1s ease;
+}
+
+.wave-viz.active .bar { animation: wave 1.2s ease-in-out infinite; }
+
+@keyframes wave {
+  0%, 100% { height: 10px; opacity: 0.4; }
+  50% { height: 40px; opacity: 1; }
+}
+
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.timer-btn {
+  padding: 6px 14px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 8px;
+  color: var(--soft-blue);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+}
+
+.timer-btn:hover, .timer-btn.active {
+  background: rgba(56, 189, 248, 0.2);
+  box-shadow: var(--glow-blue);
+}
+
+/* TIPS */
+.tips-list { list-style: none; margin-top: 12px; }
+
+.tips-list li {
+  padding: 12px 16px;
+  background: rgba(56, 189, 248, 0.06);
+  border-left: 3px solid var(--soft-blue);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 0.92rem;
+  color: var(--text);
+  transition: all 0.3s ease;
+}
+
+.tips-list li:hover {
+  background: rgba(56, 189, 248, 0.1);
+  transform: translateX(4px);
+}
+
+.tip-highlight {
+  background: rgba(13, 148, 136, 0.1) !important;
+  border-left-color: var(--teal-bright) !important;
+  font-size: 1.02rem !important;
+  font-weight: 600;
+}
+
+/* FOOTER */
+.footer {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 24px;
+  margin-top: 20px;
+}
+
+.demo-badge {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  color: var(--lavender);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  z-index: 200;
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--card);
+  border: 1px solid var(--teal);
+  border-radius: 12px;
+  padding: 14px 24px;
+  color: var(--teal-bright);
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 0 30px rgba(13, 148, 136, 0.3);
+  z-index: 300;
+  opacity: 0;
+  transition: all 0.4s ease;
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* OVERLAY for training */
+.training-overlay-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: 90%;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <nav class="navbar">
+    <a href="dashboard.html">🧠 Dashboard</a>
+    <a href="sleep.html">😴 Tidur</a>
+    <a href="relax.html">🌊 Relaksasi</a>
+    <a href="game.html" class="active">🎮 Game</a>
+    <a href="learn.html">📖 Belajar</a>
+    <a href="settings.html">⚙️ Settings</a>
+  </nav>
+
+  <div class="page-header">
+    <h1>🎯 Focus Therapy</h1>
+    <p>Terapi Konsentrasi — latih otot fokus otak Bapak</p>
+  </div>
+
+  <!-- SECTION 1: POMODORO TIMER -->
+  <div class="card">
+    <h2><span class="icon">🍅</span> Pomodoro Timer</h2>
+    <div class="pomodoro-wrap">
+      <div class="mode-tabs">
+        <button class="mode-tab active" data-mode="focus" onclick="switchMode('focus', this)">Fokus 25min</button>
+        <button class="mode-tab" data-mode="short" onclick="switchMode('short', this)">Istirahat Pendek 5min</button>
+        <button class="mode-tab" data-mode="long" onclick="switchMode('long', this)">Istirahat Panjang 15min</button>
+      </div>
+      <div class="pomo-svg-wrap">
+        <svg viewBox="0 0 200 200" id="pomoSvg">
+          <defs>
+            <filter id="tealGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(56,189,248,0.1)" stroke-width="8"/>
+          <circle cx="100" cy="100" r="85" fill="none" stroke="url(#pomoGrad)" stroke-width="8" stroke-linecap="round"
+                  stroke-dasharray="534" stroke-dashoffset="0" id="pomoProgress" transform="rotate(-90 100 100)"
+                  filter="url(#tealGlow)"/>
+          <linearGradient id="pomoGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#0d9488"/>
+            <stop offset="100%" stop-color="#2dd4bf"/>
+          </linearGradient>
+        </svg>
+        <div class="pomo-time">
+          <div class="digits" id="pomoDigits">25:00</div>
+          <div class="label" id="pomoLabel">Fokus</div>
+        </div>
+      </div>
+      <div class="pomo-controls">
+        <button class="btn" id="pomoStartBtn" onclick="togglePomo()">▶ Start</button>
+        <button class="btn secondary" onclick="resetPomo()">↺ Reset</button>
+      </div>
+      <div class="pomo-stats">
+        <div class="pomo-stat">
+          <div class="val" id="pomoSessionCount">0</div>
+          <div class="lbl">Sesi Hari Ini</div>
+        </div>
+        <div class="pomo-stat">
+          <div class="val" id="pomoTotalTime">0m</div>
+          <div class="lbl">Total Fokus Hari Ini</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: FOCUS TRAINING -->
+  <div class="card">
+    <h2><span class="icon">🧘</span> Latihan Konsentrasi</h2>
+    <div class="training-tabs">
+      <button class="training-tab active" onclick="switchTraining('dot', this)">.Dot Focus</button>
+      <button class="training-tab" onclick="switchTraining('countdown', this)">100→0 Countdown</button>
+      <button class="training-tab" onclick="switchTraining('reaction', this)">⚡ Reaction Time</button>
+    </div>
+
+    <!-- DOT FOCUS -->
+    <div class="training-panel active" id="panel-dot">
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:12px">Tatap titik di tengah. Jangan klik dimana-mana sampai waktu habis. Latih konsentrasi penuh.</p>
+      <div style="margin-bottom:12px">
+        <button class="dur-btn active" onclick="setDotDur(1, this)">1 menit</button>
+        <button class="dur-btn" onclick="setDotDur(3, this)">3 menit</button>
+        <button class="dur-btn" onclick="setDotDur(5, this)">5 menit</button>
+      </div>
+      <button class="btn" id="dotStartBtn" onclick="startDotFocus()">Mulai Latihan</button>
+      <div class="training-arena" id="dotArena" style="display:none;margin-top:16px">
+        <div class="dot-focus-point"></div>
+        <div style="position:absolute;top:12px;right:16px;color:var(--teal-bright);font-size:1.2rem;font-weight:700" id="dotTimer">1:00</div>
+      </div>
+      <div class="training-meta" id="dotMeta">Skor 100% jika tidak klik sampai selesai.</div>
+      <div class="best-score" id="dotBest">Belum ada skor</div>
+    </div>
+
+    <!-- COUNTDOWN FOCUS -->
+    <div class="training-panel" id="panel-countdown">
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:12px">Hitung mundur dari 100 ke 0. Fokus pada setiap angka. Jangan terganggu.</p>
+      <button class="btn" id="cdStartBtn" onclick="startCountdown()">Mulai Countdown</button>
+      <div class="training-arena" id="cdArena" style="display:none;margin-top:16px">
+        <div class="countdown-number" id="cdNumber">100</div>
+      </div>
+      <div class="training-meta" id="cdMeta">Tekan mulai untuk memulai hitung mundur.</div>
+      <div class="best-score" id="cdBest">Belum ada skor</div>
+    </div>
+
+    <!-- REACTION TIME -->
+    <div class="training-panel" id="panel-reaction">
+      <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:12px">Tunggu warna hijau muncul, lalu klik secepat mungkin. 5 ronde, hitung rata-rata.</p>
+      <button class="btn" id="rtStartBtn" onclick="startReaction()">Mulai Reaction Test</button>
+      <div class="training-arena" id="rtArena" style="display:none;margin-top:16px">
+        <div class="training-overlay-text" id="rtText">Siap...</div>
+      </div>
+      <div class="reaction-rounds" id="rtRounds"></div>
+      <div class="training-meta" id="rtMeta">Semakin cepat = semakin fokus.</div>
+      <div class="best-score" id="rtBest">Belum ada skor</div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: FOCUS LEVEL TRACKER -->
+  <div class="card">
+    <h2><span class="icon">📊</span> Focus Level Tracker</h2>
+    <div class="focus-emoji-display" id="focusEmoji">🙂</div>
+    <div class="focus-level-val" id="focusLevelVal">7 / 10</div>
+    <div class="slider-wrap">
+      <input type="range" id="focusSlider" min="1" max="10" value="7">
+    </div>
+    <label>Kapan fokus Bapak paling tajam hari ini?</label>
+    <textarea id="focusNotes" placeholder="Contoh: Pas baca Quran subuh, sepi, betul-betul konsen..."></textarea>
+    <button class="btn" onclick="saveFocusLevel()">Simpan Level Fokus</button>
+    <h3 style="margin-top:20px;font-size:1rem;color:var(--text-muted)">Progress Mingguan (level fokus/hari):</h3>
+    <svg class="bar-chart" id="weekChart" viewBox="0 0 700 200" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="streak-badge" id="streakBadge">🔥 Streak: 0 hari fokus ≥7</div>
+  </div>
+
+  <!-- SECTION 4: NOISE GENERATOR -->
+  <div class="card">
+    <h2><span class="icon">🎧</span> Noise Generator</h2>
+    <p style="color:var(--text-muted);font-size:0.9rem">Suara bantu fokus generated real-time dengan Web Audio API</p>
+    <div class="sound-grid" id="soundGrid">
+      <div class="sound-btn" onclick="toggleSound('white', this)">
+        <span class="sound-icon">🔊</span><span class="sound-name">White Noise</span>
+      </div>
+      <div class="sound-btn" onclick="toggleSound('brown', this)">
+        <span class="sound-icon">🔇</span><span class="sound-name">Brown Noise</span>
+      </div>
+      <div class="sound-btn" onclick="toggleSound('rain', this)">
+        <span class="sound-icon">🌧️</span><span class="sound-name">Rain</span>
+      </div>
+      <div class="sound-btn" onclick="toggleSound('ocean', this)">
+        <span class="sound-icon">🌊</span><span class="sound-name">Ocean Waves</span>
+      </div>
+      <div class="sound-btn" onclick="toggleSound('binaural', this)">
+        <span class="sound-icon">🎵</span><span class="sound-name">Binaural Beats</span>
+      </div>
+    </div>
+    <div class="wave-viz" id="waveViz"></div>
+    <div class="controls-row">
+      <span style="color:var(--text-muted);font-size:0.85rem">Timer:</span>
+      <button class="timer-btn" onclick="setNoiseTimer(15, this)">15 min</button>
+      <button class="timer-btn" onclick="setNoiseTimer(30, this)">30 min</button>
+      <button class="timer-btn" onclick="setNoiseTimer(60, this)">60 min</button>
+      <button class="timer-btn" onclick="setNoiseTimer(0, this)">Off</button>
+      <span style="color:var(--text-muted);font-size:0.85rem;margin-left:auto">Volume:</span>
+      <input type="range" id="volumeSlider" min="0" max="100" value="50" style="max-width:120px">
+    </div>
+    <div id="noiseTimerDisplay" style="text-align:center;color:var(--soft-blue);margin-top:8px;font-size:0.85rem"></div>
+  </div>
+
+  <!-- SECTION 5: FOCUS TIPS -->
+  <div class="card">
+    <h2><span class="icon">💡</span> Focus Tips (Neurosains)</h2>
+    <ul class="tips-list" id="tipsList"></ul>
+  </div>
+</div>
+
+<div class="footer">
+  Soma — Bangunkan kekuatan otak yang tidur • Dibuat dengan ❤️ untuk Pak Husni
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// === Session Check ===
+(function() {
+  var params = new URLSearchParams(location.search);
+  var demo = params.get('demo') === '1';
+  if (demo) {
+    var badge = document.createElement('div');
+    badge.className = 'demo-badge';
+    badge.textContent = 'DEMO MODE';
+    document.body.appendChild(badge);
+  } else {
+    var session = localStorage.getItem('soma_session');
+    if (!session) {
+      location.href = 'login.html';
+      return;
+    }
+  }
+})();
+
+// === Helpers ===
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 3000);
+}
+
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+// === DATA INIT ===
+var focusData = JSON.parse(localStorage.getItem('soma_focus_data') || '[]');
+var focusScores = JSON.parse(localStorage.getItem('soma_focus_scores') || '[]');
+var pomoHistory = JSON.parse(localStorage.getItem('soma_pomodoro_history') || '[]');
+
+// Dummy 7 hari untuk focusData
+if (focusData.length === 0) {
+  var today = new Date();
+  var dummies = [
+    { level: 5, notes: 'Agak susah fokus, banyak gangguan' },
+    { level: 7, notes: 'Fokus bagus pas kerja pagi' },
+    { level: 8, notes: 'Alhamdulillah konsen betul hari ini' },
+    { level: 4, notes: 'Lelah, fokus turun' },
+    { level: 6, notes: 'Cukup, biasa saja' },
+    { level: 9, notes: 'Sangat tajam, betul-betul konsen' },
+    { level: 3, notes: 'Banyak distraksi, kurang fokus' }
+  ];
+  dummies.forEach(function(d, i) {
+    var date = new Date(today);
+    date.setDate(date.getDate() - (6 - i));
+    focusData.push({ date: date.toISOString().slice(0, 10), level: d.level, notes: d.notes });
+  });
+  localStorage.setItem('soma_focus_data', JSON.stringify(focusData));
+}
+
+// Dummy scores
+if (focusScores.length === 0) {
+  focusScores = [
+    { type: 'dot', score: 85, date: todayStr() },
+    { type: 'countdown', score: 95, date: todayStr() },
+    { type: 'reaction', score: 340, date: todayStr() }
+  ];
+  localStorage.setItem('soma_focus_scores', JSON.stringify(focusScores));
+}
+
+// Dummy pomodoro history (3 sesi hari ini)
+if (pomoHistory.length === 0) {
+  pomoHistory = [{ date: todayStr(), type: 'focus', minutes: 25, ts: Date.now() - 7200000 }];
+  pomoHistory.push({ date: todayStr(), type: 'focus', minutes: 25, ts: Date.now() - 5400000 });
+  pomoHistory.push({ date: todayStr(), type: 'focus', minutes: 25, ts: Date.now() - 3600000 });
+  localStorage.setItem('soma_pomodoro_history', JSON.stringify(pomoHistory));
+}
+
+// === POMODORO ===
+var pomoModes = { focus: 25, short: 5, long: 15 };
+var pomoLabels = { focus: 'Fokus', short: 'Istirahat Pendek', long: 'Istirahat Panjang' };
+var pomoMode = 'focus';
+var pomoSecondsLeft = 25 * 60;
+var pomoTotalSeconds = 25 * 60;
+var pomoRunning = false;
+var pomoInterval = null;
+var pomoCircle = 534; // circumference r=85
+
+function switchMode(mode, btn) {
+  if (pomoRunning) { showToast('Stop timer dulu'); return; }
+  pomoMode = mode;
+  pomoSecondsLeft = pomoModes[mode] * 60;
+  pomoTotalSeconds = pomoModes[mode] * 60;
+  document.querySelectorAll('.mode-tab').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  updatePomoDisplay();
+}
+
+function updatePomoDisplay() {
+  var m = Math.floor(pomoSecondsLeft / 60);
+  var s = pomoSecondsLeft % 60;
+  document.getElementById('pomoDigits').textContent =
+    String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  document.getElementById('pomoLabel').textContent = pomoLabels[pomoMode];
+  var progress = pomoTotalSeconds > 0 ? (pomoTotalSeconds - pomoSecondsLeft) / pomoTotalSeconds : 0;
+  var offset = pomoCircle * progress;
+  document.getElementById('pomoProgress').setAttribute('stroke-dashoffset', offset);
+}
+
+function togglePomo() {
+  if (pomoRunning) {
+    pomoRunning = false;
+    clearInterval(pomoInterval);
+    document.getElementById('pomoStartBtn').textContent = '▶ Resume';
+  } else {
+    pomoRunning = true;
+    document.getElementById('pomoStartBtn').textContent = '⏸ Pause';
+    pomoInterval = setInterval(function() {
+      pomoSecondsLeft--;
+      updatePomoDisplay();
+      if (pomoSecondsLeft <= 0) {
+        clearInterval(pomoInterval);
+        pomoRunning = false;
+        document.getElementById('pomoStartBtn').textContent = '▶ Start';
+        onPomoComplete();
+      }
+    }, 1000);
+  }
+}
+
+function resetPomo() {
+  clearInterval(pomoInterval);
+  pomoRunning = false;
+  pomoSecondsLeft = pomoModes[pomoMode] * 60;
+  pomoTotalSeconds = pomoModes[pomoMode] * 60;
+  document.getElementById('pomoStartBtn').textContent = '▶ Start';
+  updatePomoDisplay();
+}
+
+function onPomoComplete() {
+  beep(880, 0.3);
+  setTimeout(function() { beep(660, 0.3); }, 350);
+
+  // Record history
+  pomoHistory.push({ date: todayStr(), type: pomoMode, minutes: pomoModes[pomoMode], ts: Date.now() });
+  localStorage.setItem('soma_pomodoro_history', JSON.stringify(pomoHistory));
+  updatePomoStats();
+
+  // Auto-switch logic
+  var focusSessionsToday = pomoHistory.filter(function(h) {
+    return h.date === todayStr() && h.type === 'focus';
+  }).length;
+
+  if (pomoMode === 'focus') {
+    if (focusSessionsToday > 0 && focusSessionsToday % 4 === 0) {
+      showToast('Alhamdulillah! 4 sesi fokus selesai. Saatnya istirahat panjang 15 menit.');
+      switchMode('long');
+    } else {
+      showToast('Sesi fokus selesai! Ambil istirahat pendek 5 menit.');
+      switchMode('short');
+    }
+  } else {
+    showToast('Istirahat selesai! Saatnya fokus lagi.');
+    switchMode('focus');
+  }
+}
+
+function updatePomoStats() {
+  var todayEntries = pomoHistory.filter(function(h) { return h.date === todayStr(); });
+  var focusCount = todayEntries.filter(function(h) { return h.type === 'focus'; }).length;
+  var totalMin = todayEntries.filter(function(h) { return h.type === 'focus'; }).reduce(function(a, h) { return a + h.minutes; }, 0);
+  document.getElementById('pomoSessionCount').textContent = focusCount;
+  var hrs = Math.floor(totalMin / 60);
+  var mins = totalMin % 60;
+  document.getElementById('pomoTotalTime').textContent = hrs > 0 ? hrs + 'j ' + mins + 'm' : mins + 'm';
+}
+
+// === BEEP (Web Audio API) ===
+var beepCtx = null;
+function beep(freq, duration) {
+  if (!beepCtx) beepCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (beepCtx.state === 'suspended') beepCtx.resume();
+  var osc = beepCtx.createOscillator();
+  var gain = beepCtx.createGain();
+  osc.connect(gain);
+  gain.connect(beepCtx.destination);
+  osc.frequency.value = freq;
+  osc.type = 'sine';
+  gain.gain.setValueAtTime(0.3, beepCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, beepCtx.currentTime + duration);
+  osc.start();
+  osc.stop(beepCtx.currentTime + duration);
+}
+
+// === TRAINING: TAB SWITCH ===
+function switchTraining(tab, btn) {
+  document.querySelectorAll('.training-tab').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.training-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+// === DOT FOCUS ===
+var dotDuration = 1; // minutes
+var dotTimerInterval = null;
+var dotSecondsLeft = 0;
+var dotActive = false;
+
+function setDotDur(min, btn) {
+  dotDuration = min;
+  document.querySelectorAll('#panel-dot .dur-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+}
+
+function startDotFocus() {
+  dotSecondsLeft = dotDuration * 60;
+  dotActive = true;
+  document.getElementById('dotStartBtn').style.display = 'none';
+  document.getElementById('dotArena').style.display = 'flex';
+  document.getElementById('dotArena').addEventListener('click', onDotClick, { once: true });
+  updateDotTimer();
+  dotTimerInterval = setInterval(function() {
+    dotSecondsLeft--;
+    updateDotTimer();
+    if (dotSecondsLeft <= 0) {
+      clearInterval(dotTimerInterval);
+      dotComplete();
+    }
+  }, 1000);
+}
+
+function updateDotTimer() {
+  var m = Math.floor(dotSecondsLeft / 60);
+  var s = dotSecondsLeft % 60;
+  document.getElementById('dotTimer').textContent =
+    String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function onDotClick() {
+  if (!dotActive) return;
+  dotActive = false;
+  clearInterval(dotTimerInterval);
+  var elapsed = dotDuration * 60 - dotSecondsLeft;
+  var score = Math.round((dotSecondsLeft / (dotDuration * 60)) * 100);
+  document.getElementById('dotMeta').textContent = 'Distraksi! Skor: ' + score + '% (bertahan ' + Math.floor(elapsed / 60) + 'm ' + (elapsed % 60) + 's)';
+  saveScore('dot', score);
+  resetDotArena();
+}
+
+function dotComplete() {
+  dotActive = false;
+  document.getElementById('dotMeta').textContent = 'Alhamdulillah! Skor: 100% — fokus penuh ' + dotDuration + ' menit!';
+  saveScore('dot', 100);
+  beep(660, 0.2);
+  setTimeout(function() { beep(880, 0.3); }, 250);
+  resetDotArena();
+}
+
+function resetDotArena() {
+  document.getElementById('dotArena').style.display = 'none';
+  document.getElementById('dotStartBtn').style.display = 'inline-block';
+}
+
+// === COUNTDOWN FOCUS ===
+var cdInterval = null;
+var cdCurrent = 100;
+var cdStartTime = 0;
+
+function startCountdown() {
+  cdCurrent = 100;
+  cdStartTime = Date.now();
+  document.getElementById('cdStartBtn').style.display = 'none';
+  document.getElementById('cdArena').style.display = 'flex';
+  document.getElementById('cdNumber').textContent = '100';
+  document.getElementById('cdMeta').textContent = 'Fokus... jangan terganggu...';
+  cdInterval = setInterval(function() {
+    cdCurrent--;
+    var numEl = document.getElementById('cdNumber');
+    numEl.textContent = cdCurrent;
+    // re-trigger animation
+    numEl.style.animation = 'none';
+    void numEl.offsetWidth;
+    numEl.style.animation = '';
+    if (cdCurrent <= 0) {
+      clearInterval(cdInterval);
+      cdComplete();
+    }
+  }, 1500);
+}
+
+function cdComplete() {
+  var elapsed = Math.round((Date.now() - cdStartTime) / 1000);
+  document.getElementById('cdMeta').textContent = 'Alhamdulillah! Anda berhasil fokus ' + elapsed + ' detik.';
+  saveScore('countdown', 100);
+  document.getElementById('cdArena').style.display = 'none';
+  document.getElementById('cdStartBtn').style.display = 'inline-block';
+  beep(660, 0.2);
+  setTimeout(function() { beep(880, 0.3); }, 250);
+}
+
+// === REACTION TIME ===
+var rtState = 'idle'; // idle, waiting, ready, done
+var rtRound = 0;
+var rtTimes = [];
+var rtWaitTimeout = null;
+var rtStartTime = 0;
+var rtArenaClicked = false;
+
+function startReaction() {
+  rtRound = 0;
+  rtTimes = [];
+  rtState = 'idle';
+  document.getElementById('rtStartBtn').style.display = 'none';
+  document.getElementById('rtArena').style.display = 'flex';
+  renderRtRounds();
+  nextReaction();
+}
+
+function renderRtRounds() {
+  var html = '';
+  for (var i = 0; i < 5; i++) {
+    html += '<div class="round-dot' + (i < rtRound ? ' done' : '') + '"></div>';
+  }
+  document.getElementById('rtRounds').innerHTML = html;
+}
+
+function nextReaction() {
+  if (rtRound >= 5) {
+    finishReaction();
+    return;
+  }
+  rtState = 'waiting';
+  rtArenaClicked = false;
+  var arena = document.getElementById('rtArena');
+  arena.className = 'training-arena';
+  arena.onclick = function() {
+    if (rtState === 'waiting') {
+      // clicked too early
+      rtArenaClicked = true;
+      clearTimeout(rtWaitTimeout);
+      document.getElementById('rtText').innerHTML = '<span style="color:#f87171">Terlalu cepat! Tunggu hijau dulu.</span>';
+      setTimeout(function() { nextReaction(); }, 1500);
+    }
+  };
+  document.getElementById('rtText').innerHTML = '<div class="reaction-wait">Siap... tunggu hijau 🟢</div>';
+  var delay = 1500 + Math.random() * 2500;
+  rtWaitTimeout = setTimeout(function() {
+    if (rtArenaClicked) return;
+    rtState = 'ready';
+    rtStartTime = Date.now();
+    arena.className = 'training-arena reaction-go';
+    arena.onclick = function() {
+      if (rtState === 'ready') {
+        var rt = Date.now() - rtStartTime;
+        rtTimes.push(rt);
+        rtRound++;
+        renderRtRounds();
+        document.getElementById('rtText').innerHTML = '<div class="reaction-result-text">' + rt + ' ms</div>';
+        arena.className = 'training-arena';
+        setTimeout(function() { nextReaction(); }, 1200);
+      }
+    };
+    document.getElementById('rtText').innerHTML = '<div class="reaction-go-text">KLIK!</div>';
+  }, delay);
+}
+
+function finishReaction() {
+  var avg = Math.round(rtTimes.reduce(function(a, b) { return a + b; }, 0) / rtTimes.length);
+  var quality = avg < 250 ? 'Sangat Fokus!' : avg < 350 ? 'Fokus Bagus!' : avg < 450 ? 'Cukup Fokus' : 'Perlu Latihan Lagi';
+  document.getElementById('rtText').innerHTML = '<div class="reaction-result-text">Rata-rata: ' + avg + ' ms</div><div style="color:var(--text-muted);margin-top:8px">' + quality + '</div>';
+  document.getElementById('rtMeta').textContent = 'Selesai! Rata-rata: ' + avg + ' ms. ' + quality;
+  saveScore('reaction', avg);
+  document.getElementById('rtArena').style.display = 'none';
+  document.getElementById('rtStartBtn').style.display = 'inline-block';
+  beep(880, 0.3);
+  setTimeout(function() { beep(1100, 0.3); }, 250);
+}
+
+// === SAVE SCORES ===
+function saveScore(type, score) {
+  focusScores.push({ type: type, score: score, date: todayStr() });
+  localStorage.setItem('soma_focus_scores', JSON.stringify(focusScores));
+  updateBestScores();
+}
+
+function updateBestScores() {
+  // Dot best (highest %)
+  var dotScores = focusScores.filter(function(s) { return s.type === 'dot'; });
+  if (dotScores.length > 0) {
+    var best = Math.max.apply(null, dotScores.map(function(s) { return s.score; }));
+    document.getElementById('dotBest').textContent = '🏆 Best Score: ' + best + '%';
+  }
+  // Countdown best (always 100 if completed, but track count)
+  var cdScores = focusScores.filter(function(s) { return s.type === 'countdown'; });
+  if (cdScores.length > 0) {
+    document.getElementById('cdBest').textContent = '🏆 Selesai: ' + cdScores.length + ' kali';
+  }
+  // Reaction best (lowest ms = best)
+  var rtScores = focusScores.filter(function(s) { return s.type === 'reaction'; });
+  if (rtScores.length > 0) {
+    var bestRt = Math.min.apply(null, rtScores.map(function(s) { return s.score; }));
+    document.getElementById('rtBest').textContent = '🏆 Best ( tercepat): ' + bestRt + ' ms';
+  }
+}
+
+// === FOCUS LEVEL SLIDER ===
+var focusSlider = document.getElementById('focusSlider');
+var focusEmojiEl = document.getElementById('focusEmoji');
+var focusLevelVal = document.getElementById('focusLevelVal');
+
+function getFocusEmoji(v) {
+  if (v <= 2) return '😵';
+  if (v <= 4) return '😕';
+  if (v <= 6) return '😐';
+  if (v <= 8) return '🙂';
+  return '😃';
+}
+
+function updateFocusDisplay() {
+  var v = parseInt(focusSlider.value);
+  focusEmojiEl.textContent = getFocusEmoji(v);
+  focusLevelVal.textContent = v + ' / 10';
+}
+
+focusSlider.addEventListener('input', updateFocusDisplay);
+updateFocusDisplay();
+
+function saveFocusLevel() {
+  var level = parseInt(focusSlider.value);
+  var notes = document.getElementById('focusNotes').value;
+  var today = todayStr();
+  focusData = focusData.filter(function(d) { return d.date !== today; });
+  focusData.push({ date: today, level: level, notes: notes });
+  localStorage.setItem('soma_focus_data', JSON.stringify(focusData));
+  showToast('Level fokus disimpan! ' + getFocusEmoji(level));
+  renderWeekChart();
+  renderStreak();
+}
+
+// === WEEK CHART ===
+function renderWeekChart() {
+  var svg = document.getElementById('weekChart');
+  var recent = focusData.slice(-7);
+  var days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+  var barW = 70, gap = 20, maxH = 140, baseY = 170;
+  var html = '';
+  for (var h = 0; h <= 10; h += 2) {
+    var y = baseY - (h / 10) * maxH;
+    html += '<line x1="40" y1="' + y + '" x2="690" y2="' + y + '" stroke="rgba(56,189,248,0.08)" stroke-dasharray="3,3"/>';
+    html += '<text x="10" y="' + (y + 4) + '" fill="#94a3b8" font-size="10">' + h + '</text>';
+  }
+  recent.forEach(function(d, i) {
+    var x = 50 + i * (barW + gap);
+    var lv = d.level;
+    var hh = (lv / 10) * maxH;
+    var yy = baseY - hh;
+    var color = '#f87171';
+    if (lv >= 7) color = '#2dd4bf';
+    else if (lv >= 5) color = '#fbbf24';
+    else if (lv >= 3) color = '#fb923c';
+    html += '<rect x="' + x + '" y="' + yy + '" width="' + barW + '" height="' + hh + '" rx="6" fill="' + color + '" opacity="0.85">' +
+      '<animate attributeName="height" from="0" to="' + hh + '" dur="0.8s" fill="freeze"/>' +
+      '<animate attributeName="y" from="' + baseY + '" to="' + yy + '" dur="0.8s" fill="freeze"/></rect>';
+    html += '<text x="' + (x + barW / 2) + '" y="' + (baseY + 16) + '" text-anchor="middle" fill="#94a3b8" font-size="11">' + days[i] + '</text>';
+    html += '<text x="' + (x + barW / 2) + '" y="' + (yy - 6) + '" text-anchor="middle" fill="' + color + '" font-size="11" font-weight="700">' + lv + '</text>';
+  });
+  svg.innerHTML = html;
+}
+
+// === STREAK ===
+function renderStreak() {
+  var streak = 0;
+  for (var i = focusData.length - 1; i >= 0; i--) {
+    if (focusData[i].level >= 7) streak++;
+    else break;
+  }
+  document.getElementById('streakBadge').textContent = '🔥 Streak: ' + streak + ' hari fokus ≥7';
+}
+
+// === NOISE GENERATOR (Web Audio API) ===
+var noiseCtx = null;
+var currentNoise = null;
+var noiseNodes = [];
+var noiseTimer = null;
+var noiseMasterGain = null;
+
+function initNoiseAudio() {
+  if (!noiseCtx) {
+    noiseCtx = new (window.AudioContext || window.webkitAudioContext)();
+    noiseMasterGain = noiseCtx.createGain();
+    noiseMasterGain.gain.value = 0.35;
+    noiseMasterGain.connect(noiseCtx.destination);
+  }
+  if (noiseCtx.state === 'suspended') noiseCtx.resume();
+}
+
+function makeNoiseBuffer(type) {
+  var bufferSize = noiseCtx.sampleRate * 2;
+  var buffer = noiseCtx.createBuffer(1, bufferSize, noiseCtx.sampleRate);
+  var data = buffer.getChannelData(0);
+  if (type === 'white') {
+    for (var i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+  } else if (type === 'brown') {
+    var last = 0;
+    for (var j = 0; j < bufferSize; j++) {
+      var white = Math.random() * 2 - 1;
+      data[j] = (last + 0.02 * white) / 1.02;
+      last = data[j];
+      data[j] *= 3.5;
+    }
+  }
+  return buffer;
+}
+
+function createNoiseSound(type) {
+  var nodes = [];
+  if (type === 'white') {
+    var src = noiseCtx.createBufferSource();
+    src.buffer = makeNoiseBuffer('white');
+    src.loop = true;
+    src.connect(noiseMasterGain);
+    src.start();
+    nodes.push(src);
+  } else if (type === 'brown') {
+    var srcB = noiseCtx.createBufferSource();
+    srcB.buffer = makeNoiseBuffer('brown');
+    srcB.loop = true;
+    srcB.connect(noiseMasterGain);
+    srcB.start();
+    nodes.push(srcB);
+  } else if (type === 'rain') {
+    var srcR = noiseCtx.createBufferSource();
+    srcR.buffer = makeNoiseBuffer('white');
+    srcR.loop = true;
+    var filter = noiseCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 2200;
+    var filter2 = noiseCtx.createBiquadFilter();
+    filter2.type = 'highpass';
+    filter2.frequency.value = 600;
+    srcR.connect(filter);
+    filter.connect(filter2);
+    filter2.connect(noiseMasterGain);
+    srcR.start();
+    nodes.push(srcR, filter, filter2);
+  } else if (type === 'ocean') {
+    var srcO = noiseCtx.createBufferSource();
+    srcO.buffer = makeNoiseBuffer('white');
+    srcO.loop = true;
+    var fO = noiseCtx.createBiquadFilter();
+    fO.type = 'lowpass';
+    fO.frequency.value = 500;
+    var lfo = noiseCtx.createOscillator();
+    lfo.frequency.value = 0.1;
+    var lfoGain = noiseCtx.createGain();
+    lfoGain.gain.value = 300;
+    lfo.connect(lfoGain);
+    lfoGain.connect(fO.frequency);
+    srcO.connect(fO);
+    fO.connect(noiseMasterGain);
+    srcO.start();
+    lfo.start();
+    nodes.push(srcO, fO, lfo, lfoGain);
+  } else if (type === 'binaural') {
+    // Alpha 10Hz: left 200Hz, right 210Hz
+    var oscL = noiseCtx.createOscillator();
+    oscL.frequency.value = 200;
+    oscL.type = 'sine';
+    var oscR = noiseCtx.createOscillator();
+    oscR.frequency.value = 210;
+    oscR.type = 'sine';
+    var merger = noiseCtx.createChannelMerger(2);
+    oscL.connect(merger, 0, 0);
+    oscR.connect(merger, 0, 1);
+    merger.connect(noiseMasterGain);
+    oscL.start();
+    oscR.start();
+    nodes.push(oscL, oscR, merger);
+  }
+  return nodes;
+}
+
+function toggleSound(type, btn) {
+  initNoiseAudio();
+  if (currentNoise === type) {
+    stopNoise();
+    return;
+  }
+  stopNoise();
+  noiseNodes = createNoiseSound(type);
+  currentNoise = type;
+  document.querySelectorAll('.sound-btn').forEach(function(b) { b.classList.remove('playing'); });
+  if (btn) btn.classList.add('playing');
+  document.getElementById('waveViz').classList.add('active');
+}
+
+function stopNoise() {
+  noiseNodes.forEach(function(n) {
+    try { if (n.stop) n.stop(); } catch (e) {}
+    try { n.disconnect(); } catch (e2) {}
+  });
+  noiseNodes = [];
+  currentNoise = null;
+  document.querySelectorAll('.sound-btn').forEach(function(b) { b.classList.remove('playing'); });
+  document.getElementById('waveViz').classList.remove('active');
+  if (noiseTimer) { clearTimeout(noiseTimer); noiseTimer = null; }
+  document.getElementById('noiseTimerDisplay').textContent = '';
+  document.querySelectorAll('.timer-btn').forEach(function(b) { b.classList.remove('active'); });
+}
+
+// Wave viz bars
+(function initWaveViz() {
+  var viz = document.getElementById('waveViz');
+  for (var i = 0; i < 30; i++) {
+    var bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.animationDelay = (i * 0.05) + 's';
+    viz.appendChild(bar);
+  }
+})();
+
+function setNoiseTimer(minutes, btn) {
+  document.querySelectorAll('.timer-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (minutes === 0) {
+    if (noiseTimer) { clearTimeout(noiseTimer); noiseTimer = null; }
+    document.getElementById('noiseTimerDisplay').textContent = '';
+    return;
+  }
+  if (btn) btn.classList.add('active');
+  if (noiseTimer) clearTimeout(noiseTimer);
+  noiseTimer = setTimeout(function() { stopNoise(); }, minutes * 60 * 1000);
+  document.getElementById('noiseTimerDisplay').textContent = 'Auto-stop dalam ' + minutes + ' menit';
+}
+
+// Volume
+document.getElementById('volumeSlider').addEventListener('input', function() {
+  if (noiseMasterGain) noiseMasterGain.gain.value = (this.value / 100) * 0.7;
+});
+
+// === FOCUS TIPS ===
+var allTips = [
+  'Teknik Pomodoro: 25 menit fokus, 5 menit istirahat. Otak belajar concentrate tanpa burnout.',
+  'Hilangkan distraksi: tutup tab, silent HP, ruangan tenang.',
+  'Latihan fokus seperti otot: mulai dari 5 menit, naikkan bertahap.',
+  'Suara brown noise terbukti bantu konsentrasi deep work.',
+  'Jangan multitasca: fokus 1 hal sampai selesai, baru pindah.',
+  'Hidrasi otak: minum air cukup, dehidrasi 2% turunkan fokus 20%.',
+  'Tidur cukup 7-8 jam: otak kurang tidur tidak bisa fokus maksimal.',
+  'Latihan pernapasan 4-7-8 sebelum fokus: kalaukan sistem saraf.',
+  'Cahaya alami pagi bantu regulasi sirkadian dan ketajaman fokus.',
+  'Jeda 5 menit tiap 25 menit: berdiri, regang, lihat jauh 20 detik.'
+];
+
+function renderTips() {
+  // Pick random 5 tips, highlight 1
+  var shuffled = allTips.slice().sort(function() { return Math.random() - 0.5; });
+  var picked = shuffled.slice(0, 5);
+  var highlightIdx = Math.floor(Math.random() * picked.length);
+  var html = '';
+  picked.forEach(function(tip, i) {
+    var cls = i === highlightIdx ? ' class="tip-highlight"' : '';
+    html += '<li' + cls + '>' + tip + '</li>';
+  });
+  document.getElementById('tipsList').innerHTML = html;
+}
+
+// === INIT ===
+updatePomoDisplay();
+updatePomoStats();
+updateBestScores();
+renderWeekChart();
+renderStreak();
+renderTips();
+</script>
+</body>
+</html>

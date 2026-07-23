@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soma — Learning Assistant</title>
+<style>
+:root {
+  --bg-deep: #0f172a;
+  --bg-mid: #1e3a5f;
+  --card: #1e293b;
+  --card-hover: #243550;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --teal: #0d9488;
+  --teal-bright: #2dd4bf;
+  --soft-blue: #38bdf8;
+  --lavender: #a5b4fc;
+  --lavender-light: #c7d2fe;
+  --purple: #8b5cf6;
+  --purple-light: #c4b5fd;
+  --orange: #fb923c;
+  --border: rgba(56, 189, 248, 0.12);
+  --glow-teal: 0 0 24px rgba(13, 148, 136, 0.18);
+  --glow-blue: 0 0 24px rgba(56, 189, 248, 0.15);
+  --glow-lav: 0 0 24px rgba(165, 180, 252, 0.15);
+  --glow-purple: 0 0 24px rgba(139, 92, 246, 0.18);
+  --radius: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background: radial-gradient(ellipse at top, #1e3a5f 0%, #0f172a 70%);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(13, 148, 136, 0.08), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.06), transparent 50%),
+    radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.05), transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: drift 20s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-10px, 10px); }
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* NAVBAR */
+.navbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 14px 16px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 24px;
+  justify-content: center;
+  position: sticky;
+  top: 12px;
+  z-index: 100;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.navbar a {
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.navbar a:hover {
+  color: var(--text);
+  background: rgba(56, 189, 248, 0.1);
+  box-shadow: var(--glow-blue);
+}
+
+.navbar a.active {
+  color: var(--teal-bright);
+  background: rgba(13, 148, 136, 0.12);
+  box-shadow: var(--glow-teal);
+}
+
+.page-header { text-align: center; margin-bottom: 28px; }
+
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--teal-bright), var(--lavender));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px;
+}
+
+.page-header p { color: var(--text-muted); font-size: 0.95rem; }
+
+/* CARD */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--glow-teal);
+  transition: all 0.4s ease;
+}
+
+.card:hover {
+  box-shadow: 0 0 32px rgba(13, 148, 136, 0.25);
+  border-color: rgba(45, 212, 191, 0.3);
+}
+
+.card h2 {
+  font-size: 1.25rem;
+  margin-bottom: 16px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card h2 .icon { font-size: 1.4rem; }
+
+label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  margin-top: 12px;
+}
+
+input[type="text"], input[type="number"], textarea, select {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: var(--glow-teal);
+}
+
+textarea { resize: vertical; min-height: 100px; }
+
+select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+
+select option { background: var(--card); color: var(--text); }
+
+.btn {
+  display: inline-block;
+  padding: 10px 24px;
+  background: linear-gradient(135deg, var(--teal), #0f766e);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 16px;
+}
+
+.btn:hover { transform: scale(1.03); box-shadow: 0 0 24px rgba(13, 148, 136, 0.5); }
+.btn:active { transform: scale(0.98); }
+
+.btn.secondary {
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: var(--soft-blue);
+}
+
+.btn.secondary:hover { box-shadow: var(--glow-blue); }
+
+.btn.purple {
+  background: linear-gradient(135deg, var(--purple), #7c3aed);
+}
+
+.btn.purple:hover { box-shadow: 0 0 24px rgba(139, 92, 246, 0.5); }
+
+.btn.danger {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+}
+
+.btn.small { padding: 6px 14px; font-size: 0.85rem; margin-top: 0; }
+
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+/* MATERIAL LIST */
+.material-list { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+
+.material-item {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.material-item:hover {
+  border-color: var(--teal);
+  box-shadow: var(--glow-teal);
+  transform: translateY(-2px);
+}
+
+.material-item.selected {
+  border-color: var(--teal-bright);
+  box-shadow: 0 0 24px rgba(45, 212, 191, 0.3);
+  background: rgba(13, 148, 136, 0.08);
+}
+
+.material-item .mi-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.material-item .mi-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--lavender-light);
+}
+
+.material-item .mi-cat {
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: var(--purple-light);
+  white-space: nowrap;
+}
+
+.material-item .mi-cat.Quran { background: rgba(45,212,191,.12); border-color: rgba(45,212,191,.3); color: var(--teal-bright); }
+.material-item .mi-cat.Bahasa { background: rgba(56,189,248,.12); border-color: rgba(56,189,248,.3); color: var(--soft-blue); }
+.material-item .mi-cat.Sains { background: rgba(168,85,247,.12); border-color: rgba(168,85,247,.3); color: #c084fc; }
+.material-item .mi-cat.Sejarah { background: rgba(251,146,60,.12); border-color: rgba(251,146,60,.3); color: var(--orange); }
+
+.material-item .mi-preview {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.material-item .mi-meta {
+  display: flex;
+  gap: 14px;
+  margin-top: 10px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.material-item .mi-meta span { display: inline-flex; align-items: center; gap: 4px; }
+
+.material-item .mi-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* CHUNK VIEWER */
+.chunk-viewer {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(165, 180, 252, 0.2);
+  border-radius: 14px;
+  padding: 28px;
+  margin-top: 16px;
+  text-align: center;
+}
+
+.chunk-progress {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  letter-spacing: 1px;
+}
+
+.chunk-progress .dot {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: rgba(165, 180, 252, 0.15);
+  margin: 0 3px;
+  transition: all 0.3s ease;
+}
+
+.chunk-progress .dot.done { background: var(--teal-bright); box-shadow: 0 0 8px rgba(45, 212, 191, 0.5); }
+.chunk-progress .dot.current { background: var(--lavender); box-shadow: 0 0 10px rgba(165, 180, 252, 0.6); transform: scale(1.3); }
+
+.chunk-text {
+  font-size: 1.15rem;
+  color: var(--lavender-light);
+  line-height: 1.8;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+  padding: 0 10px;
+}
+
+.chunk-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.chunk-actions .btn { margin-top: 0; }
+
+/* SPACED REPETITION */
+.sr-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.sr-box {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.sr-box h3 {
+  font-size: 1rem;
+  color: var(--lavender);
+  margin-bottom: 12px;
+}
+
+.sr-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(165, 180, 252, 0.08);
+  font-size: 0.9rem;
+}
+
+.sr-stat:last-child { border-bottom: none; }
+
+.sr-stat .sr-val {
+  font-weight: 700;
+  color: var(--teal-bright);
+  font-size: 1.1rem;
+}
+
+.sr-stat .sr-val.pending { color: var(--orange); }
+
+.due-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+
+.due-item {
+  background: rgba(13, 148, 136, 0.08);
+  border: 1px solid rgba(13, 148, 136, 0.25);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.88rem;
+}
+
+.due-item .due-title { color: var(--lavender-light); font-weight: 600; }
+.due-item .due-info { color: var(--text-muted); font-size: 0.78rem; margin-top: 4px; }
+
+.due-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  padding: 20px;
+  font-style: italic;
+}
+
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: rgba(45, 212, 191, 0.1);
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  border-radius: 20px;
+  color: var(--teal-bright);
+  font-weight: 600;
+  margin-top: 12px;
+}
+
+/* QUIZ */
+.quiz-box {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 14px;
+  padding: 24px;
+  margin-top: 16px;
+}
+
+.quiz-question {
+  font-size: 1.05rem;
+  color: var(--lavender-light);
+  margin-bottom: 16px;
+  padding: 16px;
+  background: rgba(139, 92, 246, 0.08);
+  border-radius: 10px;
+  border-left: 3px solid var(--purple);
+  line-height: 1.7;
+}
+
+.quiz-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 1rem;
+  margin-bottom: 12px;
+}
+
+.quiz-input:focus { outline: none; border-color: var(--purple); box-shadow: var(--glow-purple); }
+
+.quiz-result {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.quiz-result.correct { background: rgba(45, 212, 191, 0.12); color: var(--teal-bright); border: 1px solid rgba(45, 212, 191, 0.3); }
+.quiz-result.wrong { background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+.quiz-score {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.quiz-score-item {
+  text-align: center;
+  padding: 12px 20px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.quiz-score-item .qs-val { font-size: 1.4rem; font-weight: 700; color: var(--lavender-light); }
+.quiz-score-item .qs-label { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+
+/* PROGRESS */
+.progress-overview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.po-item {
+  text-align: center;
+  padding: 18px 12px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.po-item .po-val { font-size: 1.8rem; font-weight: 800; color: var(--teal-bright); }
+.po-item .po-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+
+.progress-bar-wrap {
+  margin-top: 20px;
+}
+
+.progress-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.progress-bar-track {
+  height: 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--teal-bright), var(--lavender));
+  border-radius: 6px;
+  transition: width 1s ease-out;
+  box-shadow: 0 0 12px rgba(45, 212, 191, 0.4);
+}
+
+.chart-box {
+  margin-top: 20px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.chart-box svg { width: 100%; display: block; }
+.chart-trend { text-align: center; margin-top: 10px; font-size: 0.85rem; color: var(--text-muted); }
+
+/* ACHIEVEMENTS */
+.achievements {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.achievement {
+  text-align: center;
+  padding: 18px 12px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(165, 180, 252, 0.1);
+  transition: all 0.3s ease;
+}
+
+.achievement.unlocked {
+  border-color: var(--teal);
+  box-shadow: var(--glow-teal);
+  background: rgba(13, 148, 136, 0.08);
+}
+
+.achievement.locked { opacity: 0.4; filter: grayscale(1); }
+
+.ach-icon { font-size: 2rem; margin-bottom: 8px; }
+.ach-name { font-size: 0.85rem; font-weight: 600; color: var(--lavender-light); }
+.ach-desc { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
+
+/* TIPS */
+.tips-list { list-style: none; margin-top: 12px; }
+
+.tips-list li {
+  padding: 12px 16px;
+  background: rgba(139, 92, 246, 0.06);
+  border-left: 3px solid var(--purple);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.tips-list li strong { color: var(--lavender-light); }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid var(--teal);
+  color: var(--teal-bright);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  z-index: 999;
+  transition: all 0.4s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--glow-teal);
+}
+
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* DEMO BADGE */
+.demo-badge {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  color: var(--lavender);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  z-index: 200;
+}
+
+/* FOOTER */
+.footer {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 24px;
+  margin-top: 20px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 700px) {
+  .row, .row-3, .sr-grid, .progress-overview, .achievements { grid-template-columns: 1fr; }
+  .navbar { justify-content: flex-start; overflow-x: auto; }
+  .page-header h1 { font-size: 1.5rem; }
+  .achievements { grid-template-columns: 1fr 1fr; }
+}
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <nav class="navbar">
+    <a href="dashboard.html">🧠 Dashboard</a>
+    <a href="sleep.html">😴 Tidur</a>
+    <a href="relax.html">🌊 Relaksasi</a>
+    <a href="game.html">🎮 Game</a>
+    <a href="learn.html" class="active">📖 Belajar</a>
+    <a href="settings.html">⚙️ Settings</a>
+  </nav>
+
+  <div class="page-header">
+    <h1>📖 Learning Assistant</h1>
+    <p>Belajar & hafal materi dengan chunking + spaced repetition</p>
+  </div>
+
+  <!-- SECTION 1: INPUT MATERI -->
+  <div class="card">
+    <h2><span class="icon">📝</span> Tambah Materi Belajar</h2>
+    <div class="row">
+      <div>
+        <label>Judul Materi</label>
+        <input type="text" id="matTitle" placeholder="cth: Surat Al-Fatihah, Sistem Pencernaan...">
+      </div>
+      <div>
+        <label>Kategori</label>
+        <select id="matCat">
+          <option value="Quran">Quran</option>
+          <option value="Bahasa">Bahasa</option>
+          <option value="Sains">Sains</option>
+          <option value="Sejarah">Sejarah</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
+      </div>
+    </div>
+    <label>Isi Materi</label>
+    <textarea id="matContent" placeholder="Tulis atau tempel materi di sini. Bisa per kalimat atau per paragraf..." style="min-height:140px"></textarea>
+    <button class="btn" onclick="addMaterial()">➕ Tambah Materi</button>
+  </div>
+
+  <!-- SECTION 2: LIST MATERI -->
+  <div class="card">
+    <h2><span class="icon">📚</span> Materi Belajar Saya</h2>
+    <p style="color:var(--text-muted);font-size:0.88rem">Klik materi untuk mulai belajar (chunk mode) atau quiz.</p>
+    <div class="material-list" id="materialList"></div>
+  </div>
+
+  <!-- SECTION 3: CHUNK SPLITTER -->
+  <div class="card hidden" id="chunkCard">
+    <h2><span class="icon">🧩</span> Chunk Mode — <span id="chunkMatTitle" style="color:var(--lavender)"></span></h2>
+    <p style="color:var(--text-muted);font-size:0.85rem">Baca chunk perlahan. Pahami dulu sebelum lanjut.</p>
+    <div class="chunk-viewer" id="chunkViewer">
+      <div class="chunk-progress" id="chunkProgress"></div>
+      <div class="chunk-text" id="chunkText">Pilih materi untuk mulai.</div>
+      <div class="chunk-actions" id="chunkActions">
+        <button class="btn small" onclick="startChunks()">▶ Mulai Belajar</button>
+        <button class="btn small secondary" onclick="closeChunk()">✕ Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: SPACED REPETITION -->
+  <div class="card">
+    <h2><span class="icon">🔁</span> Spaced Repetition Scheduler</h2>
+    <div class="sr-grid">
+      <div class="sr-box">
+        <h3>📊 Progress Review</h3>
+        <div class="sr-stat"><span>Materi due hari ini</span><span class="sr-val pending" id="srDueToday">0</span></div>
+        <div class="sr-stat"><span>Sudah direview hari ini</span><span class="sr-val" id="srReviewed">0</span></div>
+        <div class="sr-stat"><span>Total dijadwalkan</span><span class="sr-val" id="srScheduled">0</span></div>
+        <div class="streak-badge" id="srStreak">🔥 Streak: 0 hari belajar</div>
+      </div>
+      <div class="sr-box">
+        <h3>📅 Due Hari Ini</h3>
+        <div class="due-list" id="dueList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: QUIZ MODE -->
+  <div class="card hidden" id="quizCard">
+    <h2><span class="icon">❓</span> Quiz Mode — <span id="quizMatTitle" style="color:var(--lavender)"></span></h2>
+    <div class="quiz-box" id="quizBox">
+      <div class="quiz-question" id="quizQuestion">Tekan "Mulai Quiz" untuk memulai.</div>
+      <input type="text" class="quiz-input hidden" id="quizInput" placeholder="Ketik dari ingatan...">
+      <div class="quiz-result hidden" id="quizResult"></div>
+      <div style="text-align:center">
+        <button class="btn purple small" id="quizStartBtn" onclick="startQuiz()">▶ Mulai Quiz</button>
+        <button class="btn small hidden" id="quizSubmitBtn" onclick="submitQuiz()">✔ Cek Jawaban</button>
+        <button class="btn small secondary hidden" id="quizNextBtn" onclick="nextQuiz()">→ Berikutnya</button>
+        <button class="btn small secondary" onclick="closeQuiz()">✕ Tutup</button>
+      </div>
+      <div class="quiz-score" id="quizScore"></div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: PROGRESS -->
+  <div class="card">
+    <h2><span class="icon">📈</span> Progress Belajar</h2>
+    <div class="progress-overview">
+      <div class="po-item"><div class="po-val" id="poTotal">0</div><div class="po-label">Total Materi</div></div>
+      <div class="po-item"><div class="po-val" id="poHafal" style="color:var(--teal-bright)">0</div><div class="po-label">Materi Hafal</div></div>
+      <div class="po-item"><div class="po-val" id="poPending" style="color:var(--orange)">0</div><div class="po-label">Materi Pending</div></div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-label"><span>Progress Keseluruhan</span><span id="progressPct">0%</span></div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+    <div class="chart-box">
+      <svg viewBox="0 0 700 220" id="learnChart"></svg>
+      <p class="chart-trend" id="learnTrend">—</p>
+    </div>
+  </div>
+
+  <!-- SECTION 7: ACHIEVEMENTS -->
+  <div class="card">
+    <h2><span class="icon">🏆</span> Achievement</h2>
+    <div class="achievements" id="achievementGrid"></div>
+  </div>
+
+  <!-- SECTION 8: LEARNING TIPS -->
+  <div class="card">
+    <h2><span class="icon">💡</span> Learning Tips</h2>
+    <ul class="tips-list">
+      <li><strong>25-30 menit + 5 istirahat.</strong> Otak belajar paling efektif 25-30 menit, lalu istirahat 5 menit.</li>
+      <li><strong>Baca keras.</strong> Meningkatkan memory 15% dibaca dalam hati.</li>
+      <li><strong>Belajar sebelum tidur.</strong> Tidur setelah belajar = konsolidasi memory. Belajar sebelum tidur = efektif.</li>
+      <li><strong>Ajarkan orang lain.</strong> Ajarkan orang lain apa yang Bapak pelajari = memory permanen.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="footer">
+  Soma — Bangunkan kekuatan otak yang tidur • Dibuat dengan ❤️ untuk Pak Husni
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========================================
+   SOMA LEARNING ASSISTANT
+   ======================================== */
+
+/* ===== SESSION CHECK ===== */
+(function() {
+  var params = new URLSearchParams(location.search);
+  var demo = params.get('demo') === '1';
+  if (demo) {
+    var badge = document.createElement('div');
+    badge.className = 'demo-badge';
+    badge.textContent = 'DEMO MODE';
+    document.body.appendChild(badge);
+  } else {
+    var session = localStorage.getItem('soma_session');
+    if (!session) {
+      location.href = 'login.html';
+      return;
+    }
+  }
+})();
+
+/* ===== HELPERS ===== */
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2800);
+}
+
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+function getMaterials() { return JSON.parse(localStorage.getItem('soma_learn_materials') || '[]'); }
+function saveMaterials(m) { localStorage.setItem('soma_learn_materials', JSON.stringify(m)); }
+function getProgress() {
+  return JSON.parse(localStorage.getItem('soma_learn_progress') || '{"daily":[],"quizScores":{},"reviewedToday":[],"streak":0,"lastLearnDate":null}');
+}
+function saveProgress(p) { localStorage.setItem('soma_learn_progress', JSON.stringify(p)); }
+
+/* ===== DEMO DATA ===== */
+function initDemoData() {
+  var mats = getMaterials();
+  if (mats.length === 0) {
+    mats = [
+      {
+        id: 1, title: 'Surat Al-Fatihah', cat: 'Quran',
+        content: 'Al-Fatihah adalah surat pembuka dalam Al-Quran, terdiri dari 7 ayat. Surat ini dibaca dalam setiap rakaat salat. Bismillahirrahmanirrahim adalah bacaan pembuka. Alhamdulillahi rabbil alamin berarti segala puji bagi Allah Tuhan semesta alam. Arrahmanirrahim berarti Yang Maha Pemurah lagi Maha Penyayang. Maliki yaumiddin berarti Pemilik hari pembalasan. Iyyaka nabudu waiyyaka nastain berarti hanya kepada-Mu kami menyembah dan hanya kepada-Mu kami memohon pertolongan.',
+        created: todayStr(), chunksRead: 0, totalChunks: 0, memorized: false, stage: 0, nextReview: 0
+      },
+      {
+        id: 2, title: 'Sistem Pencernaan Manusia', cat: 'Sains',
+        content: 'Sistem pencernaan manusia terdiri dari saluran cerna dan kelenjar pencernaan. Mulut adalah tempat awal pencernaan terjadi. Di mulut, makanan dipecah secara mekanik oleh gigi dan secara kimiawi oleh enzim amilase. Kerongkongan menyalurkan makanan ke lambung melalui gerak peristaltik. Lambung menghasilkan asam klorida dan enzim pepsin untuk mencerna protein. Usus halus adalah tempat penyerapan nutrisi utama. Usus besar menyerap air dan membentuk feses.',
+        created: todayStr(), chunksRead: 0, totalChunks: 0, memorized: false, stage: 0, nextReview: 0
+      },
+      {
+        id: 3, title: 'Kata Kerja Bahasa Inggris', cat: 'Bahasa',
+        content: 'Kata kerja dalam bahasa Inggris dibagi menjadi regular dan irregular verbs. Regular verbs membentuk past tense dengan menambahkan -ed. Irregular verbs memiliki bentuk past tense yang tidak beraturan. Contoh irregular: go menjadi went, eat menjadi ate, see menjadi saw. Present participle dibentuk dengan menambahkan -ing. Past participle digunakan dalam perfect tenses. Memahami pola irregular verbs penting untuk komunikasi yang tepat.',
+        created: todayStr(), chunksRead: 0, totalChunks: 0, memorized: false, stage: 0, nextReview: 0
+      },
+      {
+        id: 4, title: 'Kerajaan Majapahit', cat: 'Sejarah',
+        content: 'Kerajaan Majapahit adalah kerajaan Hindu-Buddha terbesar di Nusantara. Majapahit didirikan oleh Raden Wijaya pada tahun 1293. Puncak kejayaan Majapahit terjadi pada masa pemerintahan Hayam Wuruk. Patih Gajah Mada adalah perdana menteri yang terkenal dengan Sumpah Palapa. Sumpah Palapa berjanji tidak akan makan enak sebelum menyatukan Nusantara. Majapahit runtuh akibat konflik internal dan munculnya kerajaan Islam. Kitab Negarakertagama ditulis oleh Mpu Prapanca.',
+        created: todayStr(), chunksRead: 0, totalChunks: 0, memorized: false, stage: 0, nextReview: 0
+      },
+      {
+        id: 5, title: 'Hippocampus dan Memory', cat: 'Sains',
+        content: 'Hippocampus adalah bagian otak yang berperan penting dalam pembentukan memori. Hippocampus terletak di dalam lobus temporal. Memori jangka pendah disimpan sementara sebelum dipindahkan ke memori jangka panjang. Tidur yang cukup membantu konsolidasi memori di hippocampus. Stress kronis dapat mengecilkan hippocampus. Latihan kognitif seperti memory game memperkuat koneksi di hippocampus. Hippocampus juga berperan dalam navigasi spasial.',
+        created: todayStr(), chunksRead: 0, totalChunks: 0, memorized: false, stage: 0, nextReview: 0
+      }
+    ];
+    saveMaterials(mats);
+  }
+
+  var prog = getProgress();
+  if (!prog.daily || prog.daily.length === 0) {
+    prog.daily = [];
+    for (var i = 6; i >= 0; i--) {
+      var d = new Date(); d.setDate(d.getDate() - i);
+      prog.daily.push({ date: d.toISOString().slice(0,10), count: Math.floor(Math.random() * 4) });
+    }
+    prog.streak = 3;
+    prog.lastLearnDate = todayStr();
+    prog.reviewedToday = [];
+    prog.quizScores = {};
+    saveProgress(prog);
+  }
+}
+initDemoData();
+
+/* ===== CHUNK SPLITTER ===== */
+function splitChunks(text) {
+  /* Split per kalimat, kelompokkan 2 kalimat per chunk */
+  var sentences = text.split(/(?<=[.!?])\s+/).filter(function(s) { return s.trim().length > 0; });
+  if (sentences.length === 0) return [text];
+  var chunks = [];
+  for (var i = 0; i < sentences.length; i += 2) {
+    var c = sentences.slice(i, i + 2).join(' ');
+    if (c.trim()) chunks.push(c.trim());
+  }
+  return chunks;
+}
+
+/* ===== MATERIAL LIST RENDER ===== */
+var selectedMatId = null;
+
+function renderMaterials() {
+  var mats = getMaterials();
+  var list = document.getElementById('materialList');
+  if (mats.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:30px;font-style:italic">Belum ada materi. Tambahkan materi pertama Bapak!</div>';
+    return;
+  }
+  list.innerHTML = '';
+  mats.forEach(function(m) {
+    var div = document.createElement('div');
+    div.className = 'material-item' + (m.id === selectedMatId ? ' selected' : '');
+    var chunks = m.totalChunks || splitChunks(m.content).length;
+    var progress = m.totalChunks > 0 ? Math.round((m.chunksRead / m.totalChunks) * 100) : 0;
+    var memBadge = m.memorized ? ' ✓ Hafal' : '';
+    var nextReviewStr = m.nextReview > 0 ? new Date(m.nextReview).toISOString().slice(0, 10) : '-';
+    div.innerHTML =
+      '<div class="mi-head">' +
+        '<span class="mi-title">' + m.title + memBadge + '</span>' +
+        '<span class="mi-cat ' + m.cat + '">' + m.cat + '</span>' +
+      '</div>' +
+      '<div class="mi-preview">' + m.content.slice(0, 120) + (m.content.length > 120 ? '...' : '') + '</div>' +
+      '<div class="mi-meta">' +
+        '<span>🧩 ' + m.chunksRead + '/' + chunks + ' chunks</span>' +
+        '<span>📊 ' + progress + '%</span>' +
+        '<span>🔁 Review: ' + nextReviewStr + '</span>' +
+      '</div>' +
+      '<div class="mi-actions">' +
+        '<button class="btn small" onclick="openChunk(' + m.id + ')">📖 Belajar</button>' +
+        '<button class="btn small purple" onclick="openQuiz(' + m.id + ')">❓ Quiz</button>' +
+        '<button class="btn small secondary" onclick="deleteMaterial(' + m.id + ')">🗑 Hapus</button>' +
+      '</div>';
+    list.appendChild(div);
+  });
+}
+
+function deleteMaterial(id) {
+  if (!confirm('Hapus materi ini?')) return;
+  var mats = getMaterials().filter(function(m) { return m.id !== id; });
+  saveMaterials(mats);
+  renderMaterials();
+  renderProgress();
+  renderSR();
+  showToast('Materi dihapus.');
+}
+
+/* ===== ADD MATERIAL ===== */
+function addMaterial() {
+  var title = document.getElementById('matTitle').value.trim();
+  var cat = document.getElementById('matCat').value;
+  var content = document.getElementById('matContent').value.trim();
+  if (!title || !content) { showToast('Judul dan isi materi wajib diisi!'); return; }
+  var mats = getMaterials();
+  var chunks = splitChunks(content);
+  var newId = mats.length > 0 ? Math.max.apply(null, mats.map(function(m) { return m.id; })) + 1 : 1;
+  mats.push({
+    id: newId, title: title, cat: cat, content: content,
+    created: todayStr(), chunksRead: 0, totalChunks: chunks.length,
+    memorized: false, stage: 0, nextReview: 0
+  });
+  saveMaterials(mats);
+  document.getElementById('matTitle').value = '';
+  document.getElementById('matContent').value = '';
+  renderMaterials();
+  renderProgress();
+  showToast('✓ Materi ditambahkan!');
+}
+
+/* ===== CHUNK MODE ===== */
+var chunkState = { matId: null, chunks: [], index: 0 };
+
+function openChunk(id) {
+  var m = getMaterials().filter(function(x) { return x.id === id; })[0];
+  if (!m) return;
+  selectedMatId = id;
+  chunkState.matId = id;
+  chunkState.chunks = splitChunks(m.content);
+  chunkState.index = m.chunksRead < chunkState.chunks.length ? m.chunksRead : 0;
+  document.getElementById('chunkCard').classList.remove('hidden');
+  document.getElementById('chunkMatTitle').textContent = m.title;
+  renderChunk();
+  renderMaterials();
+  document.getElementById('chunkCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+function startChunks() {
+  if (chunkState.chunks.length === 0) { showToast('Tidak ada chunk.'); return; }
+  renderChunk();
+}
+
+function renderChunk() {
+  var total = chunkState.chunks.length;
+  var idx = chunkState.index;
+  /* progress dots */
+  var dots = '';
+  for (var i = 0; i < total; i++) {
+    var cls = 'dot';
+    if (i < idx) cls += ' done';
+    else if (i === idx) cls += ' current';
+    dots += '<span class="' + cls + '"></span>';
+  }
+  document.getElementById('chunkProgress').innerHTML = 'Chunk ' + (idx + 1) + ' / ' + total + ' &nbsp; ' + dots;
+  if (idx < total) {
+    document.getElementById('chunkText').textContent = chunkState.chunks[idx];
+    document.getElementById('chunkActions').innerHTML =
+      '<button class="btn small" onclick="chunkUnderstood()">✓ Sudah Paham</button>' +
+      '<button class="btn small secondary" onclick="chunkRepeat()">↻ Belum Paham</button>' +
+      '<button class="btn small secondary" onclick="closeChunk()">✕ Tutup</button>';
+  } else {
+    /* all done */
+    document.getElementById('chunkText').textContent = '🎉 Semua chunk selesai! Materi akan dijadwalkan untuk review.';
+    document.getElementById('chunkActions').innerHTML =
+      '<button class="btn small" onclick="finishChunk()">✔ Selesai & Jadwalkan Review</button>' +
+      '<button class="btn small secondary" onclick="closeChunk()">✕ Tutup</button>';
+  }
+}
+
+function chunkUnderstood() {
+  chunkState.index++;
+  var mats = getMaterials();
+  var m = mats.filter(function(x) { return x.id === chunkState.matId; })[0];
+  if (m) {
+    m.chunksRead = chunkState.index;
+    m.totalChunks = chunkState.chunks.length;
+    saveMaterials(mats);
+  }
+  /* update daily count */
+  updateDailyCount();
+  renderChunk();
+  renderMaterials();
+  renderProgress();
+}
+
+function chunkRepeat() {
+  showToast('↻ Mengulang chunk ini...');
+  /* just re-render same chunk */
+  renderChunk();
+}
+
+function finishChunk() {
+  var mats = getMaterials();
+  var m = mats.filter(function(x) { return x.id === chunkState.matId; })[0];
+  if (m) {
+    m.memorized = true;
+    m.stage = 1;
+    m.nextReview = Date.now() + 86400000; /* 1 hari */
+    saveMaterials(mats);
+  }
+  /* update streak */
+  var prog = getProgress();
+  if (prog.lastLearnDate !== todayStr()) {
+    /* check if yesterday for streak continuity */
+    var y = new Date(); y.setDate(y.getDate() - 1);
+    if (prog.lastLearnDate === y.toISOString().slice(0, 10)) prog.streak = (prog.streak || 0) + 1;
+    else prog.streak = 1;
+    prog.lastLearnDate = todayStr();
+    saveProgress(prog);
+  }
+  showToast('✓ Materi selesai! Review dijadwalkan 1 hari lagi.');
+  closeChunk();
+  renderMaterials();
+  renderProgress();
+  renderSR();
+  renderAchievements();
+}
+
+function closeChunk() {
+  document.getElementById('chunkCard').classList.add('hidden');
+  chunkState.matId = null;
+}
+
+function updateDailyCount() {
+  var prog = getProgress();
+  var today = todayStr();
+  var entry = prog.daily.filter(function(d) { return d.date === today; })[0];
+  if (entry) entry.count++;
+  else prog.daily.push({ date: today, count: 1 });
+  /* keep last 7 */
+  prog.daily = prog.daily.slice(-7);
+  saveProgress(prog);
+}
+
+/* ===== SPACED REPETITION ===== */
+var SR_INTERVALS = [0, 86400000, 3 * 86400000, 7 * 86400000, 21 * 86400000]; /* 0, 1d, 3d, 7d, 21d */
+
+function renderSR() {
+  var mats = getMaterials();
+  var now = Date.now();
+  var dueToday = [];
+  var scheduled = 0;
+  var prog = getProgress();
+  var reviewedToday = prog.reviewedToday || [];
+
+  mats.forEach(function(m) {
+    if (m.nextReview > 0 && m.stage > 0) {
+      scheduled++;
+      if (m.nextReview <= now && reviewedToday.indexOf(m.id) === -1) {
+        dueToday.push(m);
+      }
+    }
+  });
+
+  document.getElementById('srDueToday').textContent = dueToday.length;
+  document.getElementById('srReviewed').textContent = reviewedToday.length;
+  document.getElementById('srScheduled').textContent = scheduled;
+  document.getElementById('srStreak').textContent = '🔥 Streak: ' + (prog.streak || 0) + ' hari belajar';
+
+  var dueList = document.getElementById('dueList');
+  if (dueToday.length === 0) {
+    dueList.innerHTML = '<div class="due-empty">🎉 Tidak ada review due hari ini. Tambah materi baru atau istirahat!</div>';
+  } else {
+    dueList.innerHTML = '';
+    dueToday.forEach(function(m) {
+      var div = document.createElement('div');
+      div.className = 'due-item';
+      var stageLabel = ['-', '1 hari', '3 hari', '7 hari', '21 hari'][m.stage] || 'review';
+      div.innerHTML = '<div class="due-title">' + m.title + '</div>' +
+        '<div class="due-info">Kategori: ' + m.cat + ' • Stage: ' + stageLabel + '</div>' +
+        '<div style="margin-top:8px"><button class="btn small" onclick="reviewMaterial(' + m.id + ')">✔ Sudah Direview</button>' +
+        '<button class="btn small secondary" onclick="openChunk(' + m.id + ')">📖 Baca Ulang</button></div>';
+      dueList.appendChild(div);
+    });
+  }
+}
+
+function reviewMaterial(id) {
+  var mats = getMaterials();
+  var m = mats.filter(function(x) { return x.id === id; })[0];
+  if (!m) return;
+  m.stage = Math.min(m.stage + 1, 4);
+  if (m.stage < 4) {
+    m.nextReview = Date.now() + SR_INTERVALS[m.stage];
+  } else {
+    m.nextReview = 0; /* graduated */
+    m.memorized = true;
+  }
+  saveMaterials(mats);
+  var prog = getProgress();
+  if (!prog.reviewedToday) prog.reviewedToday = [];
+  if (prog.reviewedToday.indexOf(id) === -1) prog.reviewedToday.push(id);
+  saveProgress(prog);
+  showToast('✓ Review dicatat! Stage ' + m.stage + '/4');
+  renderSR();
+  renderProgress();
+}
+
+/* ===== QUIZ MODE ===== */
+var quizState = { matId: null, chunks: [], index: 0, correct: 0, total: 0 };
+
+function openQuiz(id) {
+  var m = getMaterials().filter(function(x) { return x.id === id; })[0];
+  if (!m) return;
+  quizState.matId = id;
+  quizState.chunks = splitChunks(m.content);
+  quizState.index = 0;
+  quizState.correct = 0;
+  quizState.total = 0;
+  document.getElementById('quizCard').classList.remove('hidden');
+  document.getElementById('quizMatTitle').textContent = m.title;
+  document.getElementById('quizQuestion').textContent = 'Tekan "Mulai Quiz" untuk memulai. Ada ' + quizState.chunks.length + ' soal.';
+  document.getElementById('quizInput').classList.add('hidden');
+  document.getElementById('quizResult').classList.add('hidden');
+  document.getElementById('quizSubmitBtn').classList.add('hidden');
+  document.getElementById('quizNextBtn').classList.add('hidden');
+  document.getElementById('quizStartBtn').classList.remove('hidden');
+  renderQuizScore();
+  document.getElementById('quizCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+function startQuiz() {
+  if (quizState.chunks.length === 0) { showToast('Tidak ada soal.'); return; }
+  quizState.index = 0;
+  quizState.correct = 0;
+  quizState.total = 0;
+  document.getElementById('quizStartBtn').classList.add('hidden');
+  showQuizQuestion();
+}
+
+function showQuizQuestion() {
+  if (quizState.index >= quizState.chunks.length) {
+    finishQuiz();
+    return;
+  }
+  var chunk = quizState.chunks[quizState.index];
+  /* hide random words */
+  var words = chunk.split(/\s+/);
+  var hideCount = Math.max(1, Math.floor(words.length * 0.25));
+  var hideIdx = [];
+  while (hideIdx.length < hideCount) {
+    var r = Math.floor(Math.random() * words.length);
+    if (hideIdx.indexOf(r) === -1) hideIdx.push(r);
+  }
+  var display = words.map(function(w, i) {
+    if (hideIdx.indexOf(i) !== -1) return '_____';
+    return w;
+  }).join(' ');
+  document.getElementById('quizQuestion').innerHTML = '<strong>Soal ' + (quizState.index + 1) + '/' + quizState.chunks.length + ':</strong><br><br>' + display + '<br><br><span style="font-size:0.8rem;color:var(--text-muted)">Isi bagian kosong (_____) dari ingatan.</span>';
+  document.getElementById('quizInput').value = '';
+  document.getElementById('quizInput').classList.remove('hidden');
+  document.getElementById('quizInput').focus();
+  document.getElementById('quizResult').classList.add('hidden');
+  document.getElementById('quizSubmitBtn').classList.remove('hidden');
+  document.getElementById('quizNextBtn').classList.add('hidden');
+  quizState.total++;
+}
+
+function submitQuiz() {
+  var input = document.getElementById('quizInput').value.trim().toLowerCase();
+  var chunk = quizState.chunks[quizState.index].toLowerCase();
+  /* simple similarity check: count matching words */
+  var inputWords = input.split(/\s+/);
+  var chunkWords = chunk.split(/\s+/);
+  var match = 0;
+  inputWords.forEach(function(w) {
+    if (chunkWords.indexOf(w) !== -1) match++;
+  });
+  var sim = inputWords.length > 0 ? match / Math.max(inputWords.length, chunkWords.length) : 0;
+  var res = document.getElementById('quizResult');
+  res.classList.remove('hidden', 'correct', 'wrong');
+  if (sim > 0.6) {
+    quizState.correct++;
+    res.classList.add('correct');
+    res.textContent = '✓ Benar! Skor kemiripan: ' + Math.round(sim * 100) + '%';
+  } else {
+    res.classList.add('wrong');
+    res.innerHTML = '✗ Belum tepat. Jawaban asli: <br><span style="font-size:0.85rem;color:var(--text)">' + quizState.chunks[quizState.index] + '</span>';
+  }
+  document.getElementById('quizSubmitBtn').classList.add('hidden');
+  document.getElementById('quizNextBtn').classList.remove('hidden');
+  renderQuizScore();
+}
+
+function nextQuiz() {
+  quizState.index++;
+  showQuizQuestion();
+}
+
+function finishQuiz() {
+  var pct = quizState.total > 0 ? Math.round((quizState.correct / quizState.total) * 100) : 0;
+  document.getElementById('quizQuestion').innerHTML = '🎉 Quiz selesai! Skor: <strong style="color:var(--teal-bright);font-size:1.3rem">' + pct + '%</strong>';
+  document.getElementById('quizInput').classList.add('hidden');
+  document.getElementById('quizResult').classList.add('hidden');
+  document.getElementById('quizSubmitBtn').classList.add('hidden');
+  document.getElementById('quizNextBtn').classList.add('hidden');
+  document.getElementById('quizStartBtn').textContent = '↻ Ulangi Quiz';
+  document.getElementById('quizStartBtn').classList.remove('hidden');
+  /* save score */
+  var prog = getProgress();
+  if (!prog.quizScores) prog.quizScores = {};
+  prog.quizScores[quizState.matId] = Math.max(prog.quizScores[quizState.matId] || 0, pct);
+  saveProgress(prog);
+  renderQuizScore();
+  showToast('Quiz selesai! Skor: ' + pct + '%');
+}
+
+function renderQuizScore() {
+  var prog = getProgress();
+  var scores = prog.quizScores || {};
+  var mats = getMaterials();
+  var html = '';
+  var totalScore = 0, count = 0;
+  mats.forEach(function(m) {
+    if (scores[m.id] !== undefined) {
+      html += '<div class="quiz-score-item"><div class="qs-val">' + scores[m.id] + '%</div><div class="qs-label">' + m.title.slice(0, 18) + '</div></div>';
+      totalScore += scores[m.id];
+      count++;
+    }
+  });
+  if (count > 0) {
+    html = '<div class="quiz-score-item"><div class="qs-val" style="color:var(--teal-bright)">' + Math.round(totalScore / count) + '%</div><div class="qs-label">Rata-rata</div></div>' + html;
+  }
+  document.getElementById('quizScore').innerHTML = html;
+}
+
+function closeQuiz() {
+  document.getElementById('quizCard').classList.add('hidden');
+  quizState.matId = null;
+}
+
+/* ===== PROGRESS ===== */
+function renderProgress() {
+  var mats = getMaterials();
+  var total = mats.length;
+  var hafal = mats.filter(function(m) { return m.memorized; }).length;
+  var pending = total - hafal;
+  var pct = total > 0 ? Math.round((hafal / total) * 100) : 0;
+
+  document.getElementById('poTotal').textContent = total;
+  document.getElementById('poHafal').textContent = hafal;
+  document.getElementById('poPending').textContent = pending;
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  drawLearnChart();
+  renderAchievements();
+}
+
+function drawLearnChart() {
+  var prog = getProgress();
+  var daily = prog.daily || [];
+  /* ensure 7 days */
+  while (daily.length < 7) daily.unshift({ date: '', count: 0 });
+  daily = daily.slice(-7);
+  var days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+  var W = 700, H = 220, padX = 50, padTop = 30, padBot = 40;
+  var chartW = W - padX - 30, chartH = H - padTop - padBot;
+  var maxVal = Math.max(5, Math.max.apply(null, daily.map(function(d) { return d.count; })));
+  var pts = daily.map(function(d, i) {
+    var x = padX + (chartW / (daily.length - 1)) * i;
+    var y = padTop + chartH - (d.count / maxVal) * chartH;
+    return { x: x, y: y, count: d.count };
+  });
+  var pathD = 'M' + pts[0].x + ',' + pts[0].y;
+  for (var i = 1; i < pts.length; i++) pathD += ' L' + pts[i].x + ',' + pts[i].y;
+  var areaD = pathD + ' L' + pts[pts.length - 1].x + ',' + (padTop + chartH) + ' L' + pts[0].x + ',' + (padTop + chartH) + ' Z';
+  var svg = '<defs>';
+  svg += '<linearGradient id="lcLine" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#2dd4bf"/><stop offset="100%" stop-color="#a5b4fc"/></linearGradient>';
+  svg += '<linearGradient id="lcArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a5b4fc" stop-opacity=".3"/><stop offset="100%" stop-color="#a5b4fc" stop-opacity="0"/></linearGradient>';
+  svg += '</defs>';
+  for (var g = 0; g <= 4; g++) {
+    var gy = padTop + (chartH / 4) * g;
+    svg += '<line x1="' + padX + '" y1="' + gy + '" x2="' + (padX + chartW) + '" y2="' + gy + '" stroke="rgba(165,180,252,.1)" stroke-width="1"/>';
+    svg += '<text x="20" y="' + (gy + 4) + '" fill="#94a3b8" font-size="10">' + Math.round(maxVal - (maxVal / 4) * g) + '</text>';
+  }
+  svg += '<path d="' + areaD + '" fill="url(#lcArea)"/>';
+  svg += '<path d="' + pathD + '" stroke="url(#lcLine)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 5px rgba(165,180,252,.4))"/>';
+  pts.forEach(function(p, i) {
+    svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="4" fill="#0f172a" stroke="#a5b4fc" stroke-width="2"/>';
+    svg += '<text x="' + p.x + '" y="' + (p.y - 12) + '" text-anchor="middle" fill="#c7d2fe" font-size="10" font-weight="600">' + p.count + '</text>';
+    svg += '<text x="' + p.x + '" y="' + (H - 15) + '" text-anchor="middle" fill="#94a3b8" font-size="11">' + days[i] + '</text>';
+  });
+  document.getElementById('learnChart').innerHTML = svg;
+  var total = daily.reduce(function(a, d) { return a + d.count; }, 0);
+  document.getElementById('learnTrend').textContent = 'Total ' + total + ' chunk dipelajari 7 hari terakhir';
+}
+
+/* ===== ACHIEVEMENTS ===== */
+var LEARN_ACHIEVEMENTS = [
+  { id: 'learn1', icon: '🌱', name: 'Pembelajar Pemula', desc: '1 materi dipelajari', threshold: 1 },
+  { id: 'learn10', icon: '📖', name: 'Rajin Belajar', desc: '10 materi dipelajari', threshold: 10 },
+  { id: 'learn50', icon: '🧠', name: 'Otak Spons', desc: '50 materi dipelajari', threshold: 50 }
+];
+
+function renderAchievements() {
+  var mats = getMaterials();
+  var learnedCount = mats.filter(function(m) { return m.chunksRead > 0 || m.memorized; }).length;
+  var grid = document.getElementById('achievementGrid');
+  grid.innerHTML = '';
+  LEARN_ACHIEVEMENTS.forEach(function(a) {
+    var unlocked = learnedCount >= a.threshold;
+    var div = document.createElement('div');
+    div.className = 'achievement ' + (unlocked ? 'unlocked' : 'locked');
+    div.innerHTML = '<div class="ach-icon">' + a.icon + '</div><div class="ach-name">' + a.name + '</div><div class="ach-desc">' + a.desc + '</div>';
+    grid.appendChild(div);
+  });
+}
+
+/* ===== INIT ===== */
+renderMaterials();
+renderSR();
+renderProgress();
+renderQuizScore();
+</script>
+</body>
+</html>

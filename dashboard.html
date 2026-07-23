@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SOMA">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<title>SOMA — Dashboard Otak</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-deep:#0f172a;--bg-mid:#1e3a5f;--bg-card:rgba(30,58,95,.35);
+  --teal:#0d9488;--teal-light:#2dd4bf;--lavender:#a5b4fc;--lavender-light:#c7d2fe;
+  --text:#e2e8f0;--text-muted:#94a3b8;--white:#f8fafc;
+  --glow-teal:0 0 20px rgba(13,148,136,.4);--glow-lav:0 0 30px rgba(165,180,252,.2);
+  --sleep:#818cf8;--focus:#2dd4bf;--memory:#c084fc;--stress:#fb923c;
+}
+body{
+  font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
+  background:radial-gradient(ellipse at top,#1e3a5f 0%,#0f172a 60%);
+  color:var(--text);min-height:100vh;overflow-x:hidden;
+}
+#neural-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:.4}
+.main-wrap{position:relative;z-index:1}
+
+/* NAVBAR */
+nav{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;
+  padding:.8rem 2rem;backdrop-filter:blur(10px);
+  background:rgba(15,23,42,.7);border-bottom:1px solid rgba(165,180,252,.1);
+  position:sticky;top:0;z-index:100;
+}
+.nav-logo{font-size:1.4rem;font-weight:800;letter-spacing:3px;color:var(--lavender);text-decoration:none;text-shadow:0 0 20px rgba(165,180,252,.3)}
+.nav-menu{display:flex;gap:.3rem;flex-wrap:wrap;align-items:center}
+.nav-menu a{
+  color:var(--text-muted);text-decoration:none;font-size:.85rem;padding:.5rem .8rem;
+  border-radius:8px;transition:.3s;font-weight:500;
+}
+.nav-menu a:hover,.nav-menu a.active{color:var(--teal-light);background:rgba(13,148,136,.1)}
+.nav-menu a.active{color:var(--teal-light)}
+.btn-logout{
+  color:#fca5a5 !important;border:1px solid rgba(239,68,68,.2);border-radius:8px;
+}
+
+/* HEADER */
+.header{text-align:center;padding:2.5rem 2rem 1.5rem}
+.header h1{font-size:3rem;font-weight:900;letter-spacing:8px;color:var(--lavender);text-shadow:0 0 30px rgba(165,180,252,.4)}
+.header .tagline{font-size:1rem;color:var(--text-muted);margin-top:.5rem}
+.header .datetime{font-size:.85rem;color:var(--teal-light);margin-top:.8rem;letter-spacing:1px}
+
+/* SECTIONS */
+.section{max-width:1100px;margin:0 auto;padding:2rem 1.5rem}
+.section-title{font-size:1.3rem;color:var(--lavender);margin-bottom:1.5rem;font-weight:600}
+
+/* BRAIN SCORE */
+.brain-score-box{
+  background:var(--bg-card);border:1px solid rgba(165,180,252,.15);border-radius:20px;
+  padding:2.5rem;backdrop-filter:blur(10px);display:grid;
+  grid-template-columns:1fr 1fr;gap:2rem;align-items:center;
+}
+.brain-visual{text-align:center}
+.brain-visual svg{width:100%;max-width:280px;filter:drop-shadow(0 0 20px rgba(165,180,252,.3))}
+.score-number{font-size:3.5rem;font-weight:900;color:var(--teal-light);text-shadow:0 0 25px rgba(45,212,191,.4)}
+.score-status{font-size:1.1rem;font-weight:600;margin-top:.5rem;letter-spacing:1px}
+.score-breakdown{display:flex;flex-direction:column;gap:1.2rem}
+.score-bar-item{display:flex;flex-direction:column;gap:.4rem}
+.score-bar-label{display:flex;justify-content:space-between;font-size:.85rem}
+.score-bar-label .label{color:var(--text-muted)}
+.score-bar-label .value{color:var(--lavender-light);font-weight:600}
+.score-bar-track{height:10px;background:rgba(15,23,42,.5);border-radius:5px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:5px;transition:width 1s ease-out}
+.score-bar-fill.sleep{background:linear-gradient(90deg,var(--sleep),#a5b4fc)}
+.score-bar-fill.focus{background:linear-gradient(90deg,var(--focus),#5eead4)}
+.score-bar-fill.memory{background:linear-gradient(90deg,var(--memory),#e9d5ff)}
+.score-bar-fill.stress{background:linear-gradient(90deg,var(--stress),#fdba74)}
+
+/* QUICK STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
+.stat-card{
+  background:var(--bg-card);border:1px solid rgba(165,180,252,.12);border-radius:16px;
+  padding:1.8rem;text-align:center;backdrop-filter:blur(10px);transition:.3s;
+}
+.stat-card:hover{border-color:var(--teal);box-shadow:var(--glow-teal)}
+.stat-icon{width:56px;height:56px;margin:0 auto .8rem;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(13,148,136,.1)}
+.stat-icon svg{width:32px;height:32px}
+.stat-value{font-size:1.8rem;font-weight:700;color:var(--lavender-light)}
+.stat-label{font-size:.8rem;color:var(--text-muted);margin-top:.3rem}
+
+/* DAILY ROUTINE */
+.routine-timeline{display:flex;flex-direction:column;gap:1rem}
+.routine-item{
+  display:flex;align-items:center;gap:1.2rem;
+  background:var(--bg-card);border:1px solid rgba(165,180,252,.1);border-radius:12px;
+  padding:1.2rem 1.5rem;transition:.3s;
+}
+.routine-item.done{opacity:.6}
+.routine-item.done .routine-time{color:var(--text-muted)}
+.routine-time{font-size:.85rem;color:var(--teal-light);font-weight:600;width:60px;flex-shrink:0}
+.routine-detail{flex:1}
+.routine-detail .title{font-size:.95rem;color:var(--text)}
+.routine-detail .desc{font-size:.8rem;color:var(--text-muted);margin-top:.2rem}
+.routine-check{
+  width:24px;height:24px;border:2px solid var(--teal);border-radius:6px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.3s;flex-shrink:0;
+}
+.routine-check.checked{background:var(--teal);border-color:var(--teal)}
+.routine-check.checked::after{content:'✓';color:var(--white);font-size:14px;font-weight:700}
+
+/* QUOTE */
+.quote-box{
+  background:var(--bg-card);border:1px solid rgba(165,180,252,.15);border-radius:16px;
+  padding:2.5rem;text-align:center;backdrop-filter:blur(10px);position:relative;
+  box-shadow:var(--glow-lav);
+}
+.quote-box .quote-mark{font-size:3rem;color:var(--lavender);opacity:.3;position:absolute;top:1rem;left:1.5rem}
+.quote-text{font-size:1.15rem;color:var(--lavender-light);font-style:italic;max-width:600px;margin:0 auto}
+.quote-author{font-size:.85rem;color:var(--text-muted);margin-top:1rem}
+
+/* WEEKLY CHART */
+.chart-box{background:var(--bg-card);border:1px solid rgba(165,180,252,.15);border-radius:16px;padding:2rem;backdrop-filter:blur(10px)}
+.chart-box svg{width:100%;max-width:700px;display:block;margin:0 auto}
+.chart-trend{text-align:center;margin-top:1rem;font-size:.9rem}
+
+/* FOOTER */
+footer{
+  text-align:center;padding:2rem;background:rgba(15,23,42,.8);
+  border-top:1px solid rgba(165,180,252,.1);color:var(--text-muted);font-size:.9rem;
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .brain-score-box{grid-template-columns:1fr;text-align:center}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:600px){
+  nav{padding:.8rem 1rem}
+  .nav-menu{gap:0}
+  .nav-menu a{font-size:.75rem;padding:.4rem .5rem}
+  .header h1{font-size:2rem;letter-spacing:4px}
+  .section{padding:1.5rem 1rem}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<canvas id="neural-canvas"></canvas>
+<div class="main-wrap">
+
+<!-- NAVBAR -->
+<nav>
+  <a href="dashboard.html" class="nav-logo">SOMA</a>
+  <div class="nav-menu">
+    <a href="dashboard.html" class="active">🧠 Dashboard</a>
+    <a href="sleep.html">😴 Tidur</a>
+    <a href="relax.html">🌊 Relaksasi</a>
+    <a href="game.html">🎮 Game</a>
+    <a href="learn.html">📖 Belajar</a>
+    <a href="settings.html">⚙️ Settings</a>
+    <a href="#" id="logoutBtn" class="btn-logout">Keluar</a>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>SOMA</h1>
+  <p class="tagline">Bangunkan kekuatan otak yang tidur</p>
+  <p class="datetime" id="liveDateTime"></p>
+</div>
+
+<!-- BRAIN HEALTH SCORE -->
+<div class="section">
+  <h2 class="section-title">🧠 Brain Health Score Hari Ini</h2>
+  <div class="brain-score-box">
+    <div class="brain-visual">
+      <svg viewBox="0 0 200 200" id="brainSvg">
+        <defs>
+          <radialGradient id="brainGlow"><stop offset="0%" stop-color="#2dd4bf" stop-opacity=".4"/><stop offset="100%" stop-color="#0f172a" stop-opacity="0"/></radialGradient>
+          <linearGradient id="brainFill" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#0d9488"/>
+          </linearGradient>
+        </defs>
+        <circle cx="100" cy="100" r="90" fill="url(#brainGlow)"/>
+        <path d="M100,25 C70,25 50,50 50,75 C50,85 42,90 42,105 C42,125 55,140 70,145 C75,155 85,160 100,160 C115,160 125,155 130,145 C145,140 158,125 158,105 C158,90 150,85 150,75 C150,50 130,25 100,25 Z"
+              fill="url(#brainFill)" stroke="#a5b4fc" stroke-width="2" opacity=".85"/>
+        <path d="M100,25 C92,40 88,55 88,75 M100,160 C95,145 92,130 92,110 M50,75 Q70,80 88,75 M150,75 Q130,80 112,75 M42,105 Q70,110 92,105 M158,105 Q130,110 108,105"
+              stroke="#a5b4fc" stroke-width="1" fill="none" opacity=".5"/>
+        <circle cx="100" cy="25" r="4" fill="#2dd4bf"/><circle cx="50" cy="75" r="3" fill="#a5b4fc"/>
+        <circle cx="150" cy="75" r="3" fill="#a5b4fc"/><circle cx="42" cy="105" r="3" fill="#a5b4fc"/>
+        <circle cx="158" cy="105" r="3" fill="#a5b4fc"/><circle cx="100" cy="160" r="4" fill="#2dd4bf"/>
+        <text x="100" y="105" text-anchor="middle" fill="#f8fafc" font-size="32" font-weight="900" id="brainScoreSvg">0</text>
+        <text x="100" y="125" text-anchor="middle" fill="#94a3b8" font-size="10">/ 100</text>
+      </svg>
+      <div class="score-number" id="scoreNumber">0</div>
+      <div class="score-status" id="scoreStatus">—</div>
+    </div>
+    <div class="score-breakdown">
+      <div class="score-bar-item">
+        <div class="score-bar-label"><span class="label">😴 Sleep Score</span><span class="value" id="sleepVal">0</span></div>
+        <div class="score-bar-track"><div class="score-bar-fill sleep" id="sleepBar" style="width:0%"></div></div>
+      </div>
+      <div class="score-bar-item">
+        <div class="score-bar-label"><span class="label">🎯 Focus Score</span><span class="value" id="focusVal">0</span></div>
+        <div class="score-bar-track"><div class="score-bar-fill focus" id="focusBar" style="width:0%"></div></div>
+      </div>
+      <div class="score-bar-item">
+        <div class="score-bar-label"><span class="label">🧩 Memory Score</span><span class="value" id="memoryVal">0</span></div>
+        <div class="score-bar-track"><div class="score-bar-fill memory" id="memoryBar" style="width:0%"></div></div>
+      </div>
+      <div class="score-bar-item">
+        <div class="score-bar-label"><span class="label">🌊 Stress Level</span><span class="value" id="stressVal">0</span></div>
+        <div class="score-bar-track"><div class="score-bar-fill stress" id="stressBar" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+  <a href="analytics.html" style="display:inline-block;margin-top:1rem;padding:.6rem 1.2rem;background:rgba(13,148,136,.15);color:var(--teal-light);text-decoration:none;border-radius:10px;font-size:.85rem;font-weight:600;border:1px solid rgba(45,212,191,.2);transition:.3s;">📊 Lihat Analisa Otak →</a>
+</div>
+
+<!-- QUICK STATS -->
+<div class="section">
+  <h2 class="section-title">📊 Quick Stats</h2>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="stat-value" id="statSleep">0h</div>
+      <div class="stat-label">Jam Tidur Semalam</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#2dd4bf" stroke-width="2"/><circle cx="12" cy="12" r="6" stroke="#2dd4bf" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="#2dd4bf"/></svg></div>
+      <div class="stat-value" id="statFocus">0</div>
+      <div class="stat-label">Sesi Fokus Hari Ini</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2C8 2 5 5 5 9c0 3 2 5 4 6v3h6v-3c2-1 4-3 4-6 0-4-3-7-7-7z" stroke="#c084fc" stroke-width="2"/><line x1="9" y1="21" x2="15" y2="21" stroke="#c084fc" stroke-width="2"/></svg></div>
+      <div class="stat-value" id="statMemory">0</div>
+      <div class="stat-label">Memory Score</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M2 12c2-4 4-4 6 0s4 4 6 0 4-4 6 0" stroke="#fb923c" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M2 17c2-4 4-4 6 0s4 4 6 0 4-4 6 0" stroke="#fb923c" stroke-width="2" fill="none" stroke-linecap="round" opacity=".5"/></svg></div>
+      <div class="stat-value" id="statStress">0%</div>
+      <div class="stat-label">Stress Level</div>
+    </div>
+  </div>
+</div>
+
+<!-- DAILY ROUTINE -->
+<div class="section">
+  <h2 class="section-title">📅 Daily Brain Routine</h2>
+  <div class="routine-timeline" id="routineList"></div>
+</div>
+
+<!-- MOTIVATION QUOTE -->
+<div class="section">
+  <h2 class="section-title">💡 Motivasi Hari Ini</h2>
+  <div class="quote-box">
+    <span class="quote-mark">"</span>
+    <p class="quote-text" id="quoteText">—</p>
+    <p class="quote-author" id="quoteAuthor">—</p>
+  </div>
+</div>
+
+<!-- WEEKLY PROGRESS -->
+<div class="section">
+  <h2 class="section-title">📈 Progress Mingguan</h2>
+  <div class="chart-box">
+    <svg viewBox="0 0 700 250" id="weeklyChart"></svg>
+    <p class="chart-trend" id="chartTrend">—</p>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  Soma — Bangunkan kekuatan otak yang tidur • Dibuat dengan ❤️ untuk Pak Husni
+</footer>
+
+</div>
+
+<script>
+/* ========================================
+   SOMA DASHBOARD — BRAIN HEALTH
+   ======================================== */
+
+/* ===== NEURAL ANIMATION ===== */
+(function(){
+  var canvas=document.getElementById('neural-canvas');
+  var ctx=canvas.getContext('2d');
+  var W,H,particles;
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;initParticles();}
+  function initParticles(){
+    var count=Math.min(60,Math.floor(W*H/20000));
+    particles=[];
+    for(var i=0;i<count;i++){
+      particles.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3,r:Math.random()*2+1});
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    for(var i=0;i<particles.length;i++){
+      var p=particles[i];p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>W)p.vx*=-1;
+      if(p.y<0||p.y>H)p.vy*=-1;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(165,180,252,0.4)';ctx.fill();
+      for(var j=i+1;j<particles.length;j++){
+        var q=particles[j];var dx=p.x-q.x,dy=p.y-q.y;var dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<130){ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);
+          ctx.strokeStyle='rgba(45,212,191,'+(1-dist/130)*0.12+')';ctx.lineWidth=0.5;ctx.stroke();}
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',resize);resize();draw();
+})();
+
+/* ===== SESSION CHECK ===== */
+var session=JSON.parse(localStorage.getItem('soma_session')||'null');
+if(!session||!session.userId){window.location.href='login.html';}
+
+/* ===== LIVE DATE TIME ===== */
+function updateDateTime(){
+  var now=new Date();
+  var days=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  var months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  var d=days[now.getDay()];
+  var dd=now.getDate();var m=months[now.getMonth()];var y=now.getFullYear();
+  var hh=String(now.getHours()).padStart(2,'0');
+  var mm=String(now.getMinutes()).padStart(2,'0');
+  var ss=String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('liveDateTime').textContent=d+', '+dd+' '+m+' '+y+' • '+hh+':'+mm+':'+ss;
+}
+setInterval(updateDateTime,1000);updateDateTime();
+
+/* ===== LOGOUT ===== */
+document.getElementById('logoutBtn').addEventListener('click',function(e){
+  e.preventDefault();
+  localStorage.removeItem('soma_session');
+  window.location.href='login.html';
+});
+
+/* ===== GENERATE DEMO DATA ===== */
+function generateDemoData(){
+  var sleepData=JSON.parse(localStorage.getItem('soma_sleep_data')||'null');
+  if(!sleepData){
+    sleepData=[];
+    for(var i=6;i>=0;i--){
+      sleepData.push({day:i,hours:(6.5+Math.random()*2).toFixed(1)});
+    }
+    localStorage.setItem('soma_sleep_data',JSON.stringify(sleepData));
+  }
+  var focusData=JSON.parse(localStorage.getItem('soma_focus_data')||'null');
+  if(!focusData){
+    focusData=[];
+    for(var i=6;i>=0;i--){
+      focusData.push({day:i,sessions:Math.floor(Math.random()*4)});
+    }
+    localStorage.setItem('soma_focus_data',JSON.stringify(focusData));
+  }
+  var memoryData=JSON.parse(localStorage.getItem('soma_memory_data')||'null');
+  if(!memoryData){
+    memoryData=[];
+    for(var i=6;i>=0;i--){
+      memoryData.push({day:i,score:Math.floor(50+Math.random()*40)});
+    }
+    localStorage.setItem('soma_memory_data',JSON.stringify(memoryData));
+  }
+  var stressData=JSON.parse(localStorage.getItem('soma_stress_data')||'null');
+  if(!stressData){
+    stressData=[];
+    for(var i=6;i>=0;i--){
+      stressData.push({day:i,level:Math.floor(20+Math.random()*40)});
+    }
+    localStorage.setItem('soma_stress_data',JSON.stringify(stressData));
+  }
+  var brainScore=JSON.parse(localStorage.getItem('soma_brain_score')||'null');
+  if(!brainScore){
+    brainScore=[];
+    for(var i=6;i>=0;i--){
+      var sl=parseFloat(sleepData[6-i].hours);
+      var ss=Math.min(100,Math.round(sl/8*100));
+      var fs=focusData[6-i].sessions;
+      var fsc=Math.min(100,fs*25+20);
+      var ms=memoryData[6-i].score;
+      var st=stressData[6-i].level;
+      var total=Math.round((ss+fsc+ms+(100-st))/4);
+      brainScore.push({day:i,score:total,sleep:ss,focus:fsc,memory:ms,stress:st});
+    }
+    localStorage.setItem('soma_brain_score',JSON.stringify(brainScore));
+  }
+  var routine=JSON.parse(localStorage.getItem('soma_daily_routine')||'null');
+  if(!routine){
+    routine=[
+      {time:'Pagi',title:'Breathing Exercise',desc:'5 menit napas dalam untuk bangunkan otak',done:false},
+      {time:'Siang',title:'Focus Session',desc:'25 menit pomodoro fokus penuh',done:false},
+      {time:'Sore',title:'Memory Game',desc:'10 menit latihan memori kognitif',done:false},
+      {time:'Malam',title:'Sleep Prep + Relax',desc:'15 menit relaksasi sebelum tidur',done:false}
+    ];
+    localStorage.setItem('soma_daily_routine',JSON.stringify(routine));
+  }
+}
+generateDemoData();
+
+/* ===== TODAY SCORE ===== */
+var allData=JSON.parse(localStorage.getItem('soma_brain_score')||'[]');
+var today=allData.length>0?allData[allData.length-1]:{score:0,sleep:0,focus:0,memory:0,stress:0};
+var sleepRaw=JSON.parse(localStorage.getItem('soma_sleep_data')||'[]');
+var focusRaw=JSON.parse(localStorage.getItem('soma_focus_data')||'[]');
+var memoryRaw=JSON.parse(localStorage.getItem('soma_memory_data')||'[]');
+var stressRaw=JSON.parse(localStorage.getItem('soma_stress_data')||'[]');
+var todaySleepHours=sleepRaw.length>0?parseFloat(sleepRaw[sleepRaw.length-1].hours):0;
+var todayFocusSess=focusRaw.length>0?focusRaw[focusRaw.length-1].sessions:0;
+var todayMemoryScore=memoryRaw.length>0?memoryRaw[memoryRaw.length-1].score:0;
+var todayStressLevel=stressRaw.length>0?stressRaw[stressRaw.length-1].level:0;
+
+/* Animate score number */
+var scoreEl=document.getElementById('scoreNumber');
+var scoreSvgEl=document.getElementById('brainScoreSvg');
+var target=0;var current=0;
+target=today.score||0;
+var animTimer=setInterval(function(){
+  current+=1;if(current>=target){current=target;clearInterval(animTimer);}
+  scoreEl.textContent=current;
+  scoreSvgEl.textContent=current;
+},20);
+
+/* Status */
+var statusEl=document.getElementById('scoreStatus');
+if(target<40){statusEl.textContent='Otak Tidur';statusEl.style.color='#fb923c';}
+else if(target<=70){statusEl.textContent='Otak Bangkit';statusEl.style.color='#a5b4fc';}
+else{statusEl.textContent='Otak Optimal';statusEl.style.color='#2dd4bf';}
+
+/* Bars */
+function setBar(barId,valId,value){
+  document.getElementById(barId).style.width=Math.min(100,value)+'%';
+  document.getElementById(valId).textContent=value;
+}
+setBar('sleepBar','sleepVal',today.sleep||0);
+setBar('focusBar','focusVal',today.focus||0);
+setBar('memoryBar','memoryVal',today.memory||0);
+setBar('stressBar','stressVal',today.stress||0);
+
+/* Quick stats */
+document.getElementById('statSleep').textContent=todaySleepHours.toFixed(1)+'h';
+document.getElementById('statFocus').textContent=todayFocusSess;
+document.getElementById('statMemory').textContent=todayMemoryScore;
+document.getElementById('statStress').textContent=todayStressLevel+'%';
+
+/* ===== DAILY ROUTINE ===== */
+var routineData=JSON.parse(localStorage.getItem('soma_daily_routine')||'[]');
+var routineList=document.getElementById('routineList');
+routineData.forEach(function(item,idx){
+  var div=document.createElement('div');
+  div.className='routine-item'+(item.done?' done':'');
+  div.innerHTML='<div class="routine-time">'+item.time+'</div>'+
+    '<div class="routine-detail"><div class="title">'+item.title+'</div><div class="desc">'+item.desc+'</div></div>'+
+    '<div class="routine-check'+(item.done?' checked':'')+'" data-idx="'+idx+'"></div>';
+  routineList.appendChild(div);
+});
+routineList.querySelectorAll('.routine-check').forEach(function(el){
+  el.addEventListener('click',function(){
+    var idx=parseInt(this.getAttribute('data-idx'));
+    routineData[idx].done=!routineData[idx].done;
+    localStorage.setItem('soma_daily_routine',JSON.stringify(routineData));
+    if(routineData[idx].done){this.classList.add('checked');this.parentElement.classList.add('done');}
+    else{this.classList.remove('checked');this.parentElement.classList.remove('done');}
+  });
+});
+
+/* ===== QUOTES ===== */
+var quotes=[
+  {text:'Otak seperti otot. Kalau tidak dilatih, dia menyusut.',author:'Soma'},
+  {text:'Tidur bukan kelemahan. Tidur adalah reset untuk otak yang lebih tajam.',author:'Neurosains'},
+  {text:'Memori bukan tentang menghafal, tapi tentang memahami dan mengulang.',author:'Spaced Repetition'},
+  {text:'Fokus adalah senjata paling tajam di era gangguan.',author:'Cal Newport'},
+  {text:'Otak yang tenang adalah otak yang kuat.',author:'Meditasi Kognitif'},
+  {text:'Setiap menit napas dalam adalah investasi untuk sel otak.',author:'Breathing Science'},
+  {text:'Anda tidak bisa menghafal apa yang tidak Anda pahami.',author:'Mnemonik'},
+  {text:'Kualitas tidur menentukan kualitas pikiran esok hari.',author:'Sleep Research'},
+  {text:'Stress yang tidak dikelola akan menjadi kabut otak yang permanen.',author:'Neurologi'},
+  {text:'Latih otak seperti atlet melatih tubuh — sedikit tapi setiap hari.',author:'Soma'},
+  {text:'Neuroplastisitas: otak Anda bisa berubah setiap hari.',author:'Neurosains Modern'},
+  {text:'Kelelahan otak bukan tanda kelemahan, tapi tanda Anda perlu istirahat.',author:'Soma'}
+];
+var dayOfYear=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/86400000);
+var q=quotes[dayOfYear%quotes.length];
+document.getElementById('quoteText').textContent=q.text;
+document.getElementById('quoteAuthor').textContent='— '+q.author;
+
+/* ===== WEEKLY CHART ===== */
+function drawWeeklyChart(){
+  var svg=document.getElementById('weeklyChart');
+  var days=['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
+  var scores=allData.map(function(d){return d.score;});
+  var W2=700,H2=250,padX=50,padTop=30,padBot=40;
+  var chartW=W2-padX-30,chartH=H2-padTop-padBot;
+  var maxVal=100;
+  var pts=scores.map(function(s,i){
+    var x=padX+(chartW/(scores.length-1))*i;
+    var y=padTop+chartH-(s/maxVal)*chartH;
+    return{x:x,y:y,score:s};
+  });
+  var pathD='M'+pts[0].x+','+pts[0].y;
+  for(var i=1;i<pts.length;i++){pathD+=' L'+pts[i].x+','+pts[i].y;}
+  var areaD=pathD+' L'+pts[pts.length-1].x+','+(padTop+chartH)+' L'+pts[0].x+','+(padTop+chartH)+' Z';
+  var svgContent='<defs>';
+  svgContent+='<linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">';
+  svgContent+='<stop offset="0%" stop-color="#2dd4bf"/><stop offset="100%" stop-color="#a5b4fc"/></linearGradient>';
+  svgContent+='<linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">';
+  svgContent+='<stop offset="0%" stop-color="#2dd4bf" stop-opacity=".3"/><stop offset="100%" stop-color="#2dd4bf" stop-opacity="0"/></linearGradient>';
+  svgContent+='</defs>';
+  /* Grid lines */
+  for(var g=0;g<=4;g++){
+    var gy=padTop+(chartH/4)*g;
+    svgContent+='<line x1="'+padX+'" y1="'+gy+'" x2="'+(padX+chartW)+'" y2="'+gy+'" stroke="rgba(165,180,252,.1)" stroke-width="1"/>';
+    svgContent+='<text x="20" y="'+(gy+4)+'" fill="#94a3b8" font-size="10">'+(100-g*25)+'</text>';
+  }
+  /* Area */
+  svgContent+='<path d="'+areaD+'" fill="url(#areaGrad)"/>';
+  /* Line */
+  svgContent+='<path d="'+pathD+'" stroke="url(#lineGrad)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 5px rgba(45,212,191,.4))"/>';
+  /* Points */
+  pts.forEach(function(p,i){
+    svgContent+='<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="#0f172a" stroke="#2dd4bf" stroke-width="2"/>';
+    svgContent+='<text x="'+p.x+'" y="'+(p.y-12)+'" text-anchor="middle" fill="#a5b4fc" font-size="10" font-weight="600">'+p.score+'</text>';
+    svgContent+='<text x="'+p.x+'" y="'+(H2-15)+'" text-anchor="middle" fill="#94a3b8" font-size="11">'+days[i]+'</text>';
+  });
+  svg.innerHTML=svgContent;
+  /* Trend */
+  var trendEl=document.getElementById('chartTrend');
+  var diff=scores[scores.length-1]-scores[0];
+  if(diff>0){trendEl.innerHTML='📈 Tren <span style="color:#2dd4bf;font-weight:600">naik</span> ('+(diff>0?'+':'')+diff+' poin minggu ini)';
+  }else if(diff<0){trendEl.innerHTML='📉 Tren <span style="color:#fb923c;font-weight:600">turun</span> ('+diff+' poin minggu ini)';
+  }else{trendEl.innerHTML='➡️ Tren <span style="color:#a5b4fc;font-weight:600">stabil</span> minggu ini';}
+}
+drawWeeklyChart();
+
+// PWA Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>

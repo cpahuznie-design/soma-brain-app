@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soma — Sleep Therapy</title>
+<style>
+:root {
+  --bg-deep: #0f172a;
+  --bg-mid: #1e3a5f;
+  --card: #1e293b;
+  --card-hover: #243550;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --teal: #0d9488;
+  --teal-bright: #2dd4bf;
+  --soft-blue: #38bdf8;
+  --lavender: #a5b4fc;
+  --purple: #8b5cf6;
+  --border: rgba(56, 189, 248, 0.12);
+  --glow-teal: 0 0 24px rgba(13, 148, 136, 0.18);
+  --glow-blue: 0 0 24px rgba(56, 189, 248, 0.15);
+  --radius: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background: radial-gradient(ellipse at top, #1e3a5f 0%, #0f172a 70%);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(13, 148, 136, 0.08), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.06), transparent 50%),
+    radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.05), transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: drift 20s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-10px, 10px); }
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.navbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 14px 16px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 24px;
+  justify-content: center;
+  position: sticky;
+  top: 12px;
+  z-index: 100;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.navbar a {
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.navbar a:hover {
+  color: var(--text);
+  background: rgba(56, 189, 248, 0.1);
+  box-shadow: var(--glow-blue);
+}
+
+.navbar a.active {
+  color: var(--teal-bright);
+  background: rgba(13, 148, 136, 0.12);
+  box-shadow: var(--glow-teal);
+}
+
+.page-header { text-align: center; margin-bottom: 28px; }
+
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--teal-bright), var(--soft-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px;
+}
+
+.page-header p { color: var(--text-muted); font-size: 0.95rem; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--glow-teal);
+  transition: all 0.4s ease;
+}
+
+.card:hover {
+  box-shadow: 0 0 32px rgba(13, 148, 136, 0.25);
+  border-color: rgba(45, 212, 191, 0.3);
+}
+
+.card h2 {
+  font-size: 1.25rem;
+  margin-bottom: 16px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card h2 .icon { font-size: 1.4rem; }
+
+label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  margin-top: 12px;
+}
+
+input[type="time"], input[type="text"], textarea {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+input[type="time"]:focus, textarea:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: var(--glow-teal);
+}
+
+textarea { resize: vertical; min-height: 70px; }
+
+.slider-wrap { margin-top: 12px; }
+
+input[type="range"] {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: rgba(56, 189, 248, 0.15);
+  border-radius: 3px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--teal-bright);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.6);
+  transition: all 0.3s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--teal-bright);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.6);
+}
+
+.btn {
+  display: inline-block;
+  padding: 10px 24px;
+  background: linear-gradient(135deg, var(--teal), #0f766e);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 16px;
+}
+
+.btn:hover { transform: scale(1.03); box-shadow: 0 0 24px rgba(13, 148, 136, 0.5); }
+.btn:active { transform: scale(0.98); }
+
+.btn.secondary {
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: var(--soft-blue);
+}
+
+.btn.secondary:hover { box-shadow: var(--glow-blue); }
+
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+@media (max-width: 600px) {
+  .row { grid-template-columns: 1fr; }
+  .navbar { justify-content: flex-start; overflow-x: auto; }
+  .page-header h1 { font-size: 1.5rem; }
+}
+
+.duration-box {
+  background: rgba(13, 148, 136, 0.1);
+  border: 1px solid rgba(13, 148, 136, 0.3);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-top: 12px;
+  text-align: center;
+}
+
+.duration-box .val { font-size: 1.6rem; font-weight: 700; color: var(--teal-bright); }
+
+.duration-box.warning { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); }
+.duration-box.warning .val { color: #f87171; }
+
+.tips-list { list-style: none; margin-top: 12px; }
+
+.tips-list li {
+  padding: 10px 14px;
+  background: rgba(56, 189, 248, 0.06);
+  border-left: 3px solid var(--soft-blue);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.tips-list li.warn { border-left-color: #f87171; background: rgba(239, 68, 68, 0.06); }
+.tips-list li.good { border-left-color: var(--teal-bright); background: rgba(13, 148, 136, 0.08); }
+
+.sound-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.sound-btn {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text);
+}
+
+.sound-btn:hover {
+  border-color: var(--teal);
+  box-shadow: var(--glow-teal);
+  transform: translateY(-2px);
+}
+
+.sound-btn.playing {
+  border-color: var(--teal-bright);
+  box-shadow: 0 0 24px rgba(45, 212, 191, 0.4);
+  background: rgba(13, 148, 136, 0.12);
+}
+
+.sound-btn .sound-icon { font-size: 1.8rem; display: block; margin-bottom: 6px; }
+.sound-btn .sound-name { font-size: 0.85rem; color: var(--text-muted); }
+.sound-btn.playing .sound-name { color: var(--teal-bright); }
+
+.wave-viz {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 60px;
+  margin-top: 16px;
+}
+
+.wave-viz .bar {
+  width: 4px;
+  height: 10px;
+  background: var(--teal);
+  border-radius: 2px;
+  opacity: 0.3;
+  transition: all 0.1s ease;
+}
+
+.wave-viz.active .bar { animation: wave 1.2s ease-in-out infinite; }
+
+@keyframes wave {
+  0%, 100% { height: 10px; opacity: 0.4; }
+  50% { height: 40px; opacity: 1; }
+}
+
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.timer-btn {
+  padding: 6px 14px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 8px;
+  color: var(--soft-blue);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+}
+
+.timer-btn:hover, .timer-btn.active {
+  background: rgba(56, 189, 248, 0.2);
+  box-shadow: var(--glow-blue);
+}
+
+.bar-chart { width: 100%; margin-top: 12px; }
+
+.doa-card {
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 12px;
+}
+
+.doa-arabic {
+  font-size: 1.6rem;
+  text-align: center;
+  color: var(--lavender);
+  margin-bottom: 12px;
+  line-height: 2;
+  direction: rtl;
+}
+
+.doa-latin { text-align: center; color: var(--text); font-style: italic; margin-bottom: 8px; }
+.doa-arti { text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: rgba(45, 212, 191, 0.1);
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  border-radius: 20px;
+  color: var(--teal-bright);
+  font-weight: 600;
+  margin-top: 12px;
+}
+
+.footer {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 24px;
+  margin-top: 20px;
+}
+
+.demo-badge {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  color: var(--lavender);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  z-index: 200;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <nav class="navbar">
+    <a href="dashboard.html">🧠 Dashboard</a>
+    <a href="sleep.html" class="active">😴 Tidur</a>
+    <a href="relax.html">🌊 Relaksasi</a>
+    <a href="game.html">🎮 Game</a>
+    <a href="learn.html">📖 Belajar</a>
+    <a href="settings.html">⚙️ Settings</a>
+  </nav>
+
+  <div class="page-header">
+    <h1>😴 Sleep Therapy</h1>
+    <p>Terapi Tidur untuk istirahat otak yang optimal</p>
+  </div>
+
+  <!-- Section 1: Sleep Tracker -->
+  <div class="card">
+    <h2><span class="icon">🛏️</span> Sleep Tracker</h2>
+    <div class="row">
+      <div>
+        <label>Jam Tidur</label>
+        <input type="time" id="sleepTime" value="22:30">
+      </div>
+      <div>
+        <label>Jam Bangun</label>
+        <input type="time" id="wakeTime" value="05:00">
+      </div>
+    </div>
+    <div class="duration-box" id="durationBox">
+      <div class="val" id="durationVal">—</div>
+      <div style="font-size:0.8rem;color:var(--text-muted)">Durasi Tidur</div>
+    </div>
+    <div class="slider-wrap">
+      <label>Skor Kualitas Tidur: <span id="qualityLabel">😊 7</span></label>
+      <input type="range" id="qualitySlider" min="1" max="10" value="7">
+    </div>
+    <label>Catatan Tidur</label>
+    <textarea id="sleepNotes" placeholder="Berapa kali terbangun? Ada mimpi? Bangun terasa gimana?"></textarea>
+    <button class="btn" onclick="saveSleep()">Simpan Tidur Malam Ini</button>
+  </div>
+
+  <!-- Section 2: Sleep Tips -->
+  <div class="card">
+    <h2><span class="icon">💡</span> Sleep Tips Personal</h2>
+    <div id="personalTips"></div>
+    <h3 style="margin-top:16px;font-size:1rem;color:var(--text-muted)">Tips Umum:</h3>
+    <ul class="tips-list">
+      <li>Jangan pakai HP 30 menit sebelum tidur — cahaya biru ganggu melatonin</li>
+      <li>Pastikan ruangan gelap dan suhu sejuk (18-20°C)</li>
+      <li>Hindari kopi setelah jam 3 sore</li>
+      <li>Konsisten jam tidur setiap hari, termasuk weekend</li>
+    </ul>
+  </div>
+
+  <!-- Section 3: Relaxation Sounds -->
+  <div class="card">
+    <h2><span class="icon">🎵</span> Relaxation Sounds</h2>
+    <p style="color:var(--text-muted);font-size:0.9rem">Suara relaksasi generated real-time dengan Web Audio API</p>
+    <div class="sound-grid" id="soundGrid">
+      <div class="sound-btn" data-sound="rain" onclick="toggleSound('rain', this)">
+        <span class="sound-icon">🌧️</span><span class="sound-name">Hujan</span>
+      </div>
+      <div class="sound-btn" data-sound="ocean" onclick="toggleSound('ocean', this)">
+        <span class="sound-icon">🌊</span><span class="sound-name">Ombak</span>
+      </div>
+      <div class="sound-btn" data-sound="forest" onclick="toggleSound('forest', this)">
+        <span class="sound-icon">🌲</span><span class="sound-name">Angin Hutan</span>
+      </div>
+      <div class="sound-btn" data-sound="white" onclick="toggleSound('white', this)">
+        <span class="sound-icon">🔊</span><span class="sound-name">White Noise</span>
+      </div>
+      <div class="sound-btn" data-sound="brown" onclick="toggleSound('brown', this)">
+        <span class="sound-icon">🔇</span><span class="sound-name">Brown Noise</span>
+      </div>
+    </div>
+    <div class="wave-viz" id="waveViz"></div>
+    <div class="controls-row">
+      <span style="color:var(--text-muted);font-size:0.85rem">Timer:</span>
+      <button class="timer-btn" onclick="setTimer(15, this)">15 min</button>
+      <button class="timer-btn" onclick="setTimer(30, this)">30 min</button>
+      <button class="timer-btn" onclick="setTimer(60, this)">60 min</button>
+      <button class="timer-btn" onclick="setTimer(0, this)">Off</button>
+      <span style="color:var(--text-muted);font-size:0.85rem;margin-left:auto">Volume:</span>
+      <input type="range" id="volumeSlider" min="0" max="100" value="50" style="max-width:120px">
+    </div>
+    <div id="timerDisplay" style="text-align:center;color:var(--soft-blue);margin-top:8px;font-size:0.85rem"></div>
+  </div>
+
+  <!-- Section 4: Sleep Schedule -->
+  <div class="card">
+    <h2><span class="icon">📅</span> Sleep Schedule</h2>
+    <div class="row">
+      <div>
+        <label>Target Jam Tidur</label>
+        <div style="font-size:1.4rem;color:var(--lavender);font-weight:700">22:00</div>
+      </div>
+      <div>
+        <label>Target Jam Bangun</label>
+        <div style="font-size:1.4rem;color:var(--lavender);font-weight:700">05:00</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;padding:10px 14px;background:rgba(165,180,252,0.08);border-radius:8px;border:1px solid rgba(165,180,252,0.2)">
+      ⏰ <strong>Pengingat:</strong> Saatnya persiapan tidur jam <span style="color:var(--lavender)">21:30</span>
+    </div>
+    <h3 style="margin-top:20px;font-size:1rem;color:var(--text-muted)">Progress Mingguan (jam tidur/hari):</h3>
+    <svg class="bar-chart" id="weekChart" viewBox="0 0 700 200" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="streak-badge" id="streakBadge">🔥 Streak: 0 hari tidur 7+ jam</div>
+  </div>
+
+  <!-- Section 5: Doa Sebelum Tidur -->
+  <div class="card">
+    <h2><span class="icon">🤲</span> Doa Sebelum Tidur</h2>
+    <div class="doa-card">
+      <div class="doa-arabic">بِاسْمِكَ اللَّهُمَّ أَحْيَا وَأَمُوتُ</div>
+      <div class="doa-latin">"Bismika Allahumma ahyaa wa amuut"</div>
+      <div class="doa-arti">"Dengan nama-Mu ya Allah, aku hidup dan aku mati."</div>
+    </div>
+    <div class="doa-card">
+      <div class="doa-arabic">اللَّهُمَّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ</div>
+      <div class="doa-latin">"Allahumma qinii 'adzaabaka yawma tab'atsu 'ibaadaka"</div>
+      <div class="doa-arti">"Ya Allah, lindungilah aku dari azab-Mu pada hari Engkau membangkitkan hamba-hamba-Mu."</div>
+    </div>
+    <button class="btn secondary" id="doaBtn" onclick="markDoa()">Sudah Baca ✓</button>
+  </div>
+</div>
+
+<div class="footer">
+  Soma — Bangunkan kekuatan otak yang tidur • Dibuat dengan ❤️ untuk Pak Husni
+</div>
+
+<script>
+// === Session Check ===
+(function() {
+  var params = new URLSearchParams(location.search);
+  var demo = params.get('demo') === '1';
+  if (demo) {
+    var badge = document.createElement('div');
+    badge.className = 'demo-badge';
+    badge.textContent = 'DEMO MODE';
+    document.body.appendChild(badge);
+  } else {
+    var session = localStorage.getItem('soma_session');
+    if (!session) {
+      location.href = 'login.html';
+      return;
+    }
+  }
+})();
+
+// === Sleep Data ===
+var sleepData = JSON.parse(localStorage.getItem('soma_sleep_data') || '[]');
+
+function calcDuration(sleepTime, wakeTime) {
+  var parts1 = sleepTime.split(':');
+  var parts2 = wakeTime.split(':');
+  var sh = parseInt(parts1[0]), sm = parseInt(parts1[1]);
+  var wh = parseInt(parts2[0]), wm = parseInt(parts2[1]);
+  var mins = (wh * 60 + wm) - (sh * 60 + sm);
+  if (mins < 0) mins += 24 * 60;
+  return { hours: Math.floor(mins / 60), minutes: mins % 60, total: mins };
+}
+
+// Generate dummy 7 hari jika kosong
+if (sleepData.length === 0) {
+  var today = new Date();
+  var dummies = [
+    { sleepTime: '23:00', wakeTime: '05:30', quality: 6, notes: 'Terbangun 2 kali' },
+    { sleepTime: '22:30', wakeTime: '05:00', quality: 8, notes: 'Tidur nyenyak' },
+    { sleepTime: '00:00', wakeTime: '06:00', quality: 5, notes: 'Terlambat tidur' },
+    { sleepTime: '22:00', wakeTime: '05:00', quality: 9, notes: 'Bangun segar' },
+    { sleepTime: '23:30', wakeTime: '06:30', quality: 7, notes: 'Cukup' },
+    { sleepTime: '22:45', wakeTime: '05:15', quality: 8, notes: 'Bagus' },
+    { sleepTime: '01:00', wakeTime: '06:00', quality: 4, notes: 'Kurang, banyak gangguan' }
+  ];
+  dummies.forEach(function(d, i) {
+    var date = new Date(today);
+    date.setDate(date.getDate() - (6 - i));
+    var dur = calcDuration(d.sleepTime, d.wakeTime);
+    sleepData.push({
+      date: date.toISOString().slice(0, 10),
+      sleepTime: d.sleepTime,
+      wakeTime: d.wakeTime,
+      duration: dur,
+      quality: d.quality,
+      notes: d.notes
+    });
+  });
+  localStorage.setItem('soma_sleep_data', JSON.stringify(sleepData));
+}
+
+// === Duration updater ===
+function updateDuration() {
+  var st = document.getElementById('sleepTime').value;
+  var wt = document.getElementById('wakeTime').value;
+  if (!st || !wt) return;
+  var d = calcDuration(st, wt);
+  var box = document.getElementById('durationBox');
+  var val = document.getElementById('durationVal');
+  val.textContent = d.hours + 'j ' + d.minutes + 'm';
+  if (d.hours < 6) box.classList.add('warning');
+  else box.classList.remove('warning');
+}
+
+document.getElementById('sleepTime').addEventListener('change', updateDuration);
+document.getElementById('wakeTime').addEventListener('change', updateDuration);
+updateDuration();
+
+// === Quality slider ===
+var qSlider = document.getElementById('qualitySlider');
+var qLabel = document.getElementById('qualityLabel');
+
+function updateQuality() {
+  var v = parseInt(qSlider.value);
+  var emoji;
+  if (v <= 3) emoji = '😴';
+  else if (v <= 6) emoji = '😐';
+  else if (v <= 8) emoji = '😊';
+  else emoji = '🌟';
+  qLabel.textContent = emoji + ' ' + v;
+}
+qSlider.addEventListener('input', updateQuality);
+updateQuality();
+
+// === Save sleep ===
+function saveSleep() {
+  var sleepTime = document.getElementById('sleepTime').value;
+  var wakeTime = document.getElementById('wakeTime').value;
+  var quality = parseInt(qSlider.value);
+  var notes = document.getElementById('sleepNotes').value;
+  var dur = calcDuration(sleepTime, wakeTime);
+  var today = new Date().toISOString().slice(0, 10);
+
+  sleepData = sleepData.filter(function(d) { return d.date !== today; });
+  sleepData.push({ date: today, sleepTime: sleepTime, wakeTime: wakeTime, duration: dur, quality: quality, notes: notes });
+  localStorage.setItem('soma_sleep_data', JSON.stringify(sleepData));
+
+  alert('Tidur malam ini disimpan. Met istirahat! 😴');
+  renderTips();
+  renderWeekChart();
+  renderStreak();
+}
+
+// === Personal Tips ===
+function renderTips() {
+  var tipsBox = document.getElementById('personalTips');
+  var last = sleepData[sleepData.length - 1];
+  if (!last) {
+    tipsBox.innerHTML = '<p style="color:var(--text-muted)">Belum ada data tidur. Simpan tidur malam ini untuk tips personal.</p>';
+    return;
+  }
+  var hrs = last.duration.hours;
+  var tips = [];
+  if (hrs < 6) {
+    tips.push({ text: '⚠️ Kurang tidur! Target 7-8 jam. Coba tidur 30 menit lebih awal besok.', type: 'warn' });
+  } else if (hrs >= 6 && hrs < 7) {
+    tips.push({ text: 'Hampir optimal. Tambah 30 menit untuk hasil maksimal.', type: '' });
+  } else if (hrs >= 7 && hrs <= 8) {
+    tips.push({ text: 'Alhamdulillah, tidur optimal! Pertahankan.', type: 'good' });
+  } else {
+    tips.push({ text: 'Tidur cukup. Pastikan kualitas juga baik.', type: '' });
+  }
+  if (last.quality < 5) {
+    tips.push({ text: 'Kualitas tidur rendah. Coba breathing exercise sebelum tidur di halaman Relaksasi.', type: 'warn' });
+  }
+  tipsBox.innerHTML = tips.map(function(t) {
+    var cls = t.type === 'warn' ? 'warn' : t.type === 'good' ? 'good' : '';
+    return '<li class="' + cls + '" style="padding:10px 14px;border-left:3px solid ' +
+      (t.type === 'warn' ? '#f87171' : t.type === 'good' ? '#2dd4bf' : '#38bdf8') +
+      ';background:' + (t.type === 'warn' ? 'rgba(239,68,68,0.06)' : t.type === 'good' ? 'rgba(13,148,136,0.08)' : 'rgba(56,189,248,0.06)') +
+      ';border-radius:8px;margin-bottom:8px;font-size:0.9rem;list-style:none">' + t.text + '</li>';
+  }).join('');
+}
+
+// === Week Chart ===
+function renderWeekChart() {
+  var svg = document.getElementById('weekChart');
+  var recent = sleepData.slice(-7);
+  var days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+  var barW = 70, gap = 20, maxH = 140, baseY = 170;
+  var html = '';
+  for (var h = 0; h <= 10; h += 2) {
+    var y = baseY - (h / 10) * maxH;
+    html += '<line x1="40" y1="' + y + '" x2="690" y2="' + y + '" stroke="rgba(56,189,248,0.08)" stroke-dasharray="3,3"/>';
+    html += '<text x="10" y="' + (y + 4) + '" fill="#94a3b8" font-size="10">' + h + 'j</text>';
+  }
+  recent.forEach(function(d, i) {
+    var x = 50 + i * (barW + gap);
+    var hrs = d.duration.hours + d.duration.minutes / 60;
+    var h = (hrs / 10) * maxH;
+    var y = baseY - h;
+    var color = '#f87171';
+    if (d.duration.hours >= 7) color = '#2dd4bf';
+    else if (d.duration.hours >= 6) color = '#fbbf24';
+    html += '<rect x="' + x + '" y="' + y + '" width="' + barW + '" height="' + h + '" rx="6" fill="' + color + '" opacity="0.85">' +
+      '<animate attributeName="height" from="0" to="' + h + '" dur="0.8s" fill="freeze"/>' +
+      '<animate attributeName="y" from="' + baseY + '" to="' + y + '" dur="0.8s" fill="freeze"/></rect>';
+    html += '<text x="' + (x + barW / 2) + '" y="' + (baseY + 16) + '" text-anchor="middle" fill="#94a3b8" font-size="11">' + days[i] + '</text>';
+    html += '<text x="' + (x + barW / 2) + '" y="' + (y - 6) + '" text-anchor="middle" fill="' + color + '" font-size="11" font-weight="700">' + d.duration.hours + '.' + d.duration.minutes + '</text>';
+  });
+  svg.innerHTML = html;
+}
+
+// === Streak ===
+function renderStreak() {
+  var streak = 0;
+  for (var i = sleepData.length - 1; i >= 0; i--) {
+    if (sleepData[i].duration.hours >= 7) streak++;
+    else break;
+  }
+  document.getElementById('streakBadge').textContent = '🔥 Streak: ' + streak + ' hari tidur 7+ jam';
+}
+
+// === Doa ===
+function markDoa() {
+  var btn = document.getElementById('doaBtn');
+  btn.textContent = '✓ Sudah Dibaca';
+  btn.style.background = 'rgba(13, 148, 136, 0.3)';
+  localStorage.setItem('soma_doa_tidur_' + new Date().toISOString().slice(0, 10), '1');
+}
+
+(function() {
+  var today = new Date().toISOString().slice(0, 10);
+  if (localStorage.getItem('soma_doa_tidur_' + today)) {
+    var btn = document.getElementById('doaBtn');
+    btn.textContent = '✓ Sudah Dibaca';
+    btn.style.background = 'rgba(13, 148, 136, 0.3)';
+  }
+})();
+
+// === Web Audio API: Relaxation Sounds ===
+var audioCtx = null;
+var currentSound = null;
+var currentNodes = [];
+var soundTimer = null;
+var masterGain = null;
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.35;
+    masterGain.connect(audioCtx.destination);
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function makeNoiseBuffer(type) {
+  var bufferSize = audioCtx.sampleRate * 2;
+  var buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  var data = buffer.getChannelData(0);
+  if (type === 'white') {
+    for (var i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+  } else if (type === 'brown') {
+    var last = 0;
+    for (var j = 0; j < bufferSize; j++) {
+      var white = Math.random() * 2 - 1;
+      data[j] = (last + 0.02 * white) / 1.02;
+      last = data[j];
+      data[j] *= 3.5;
+    }
+  }
+  return buffer;
+}
+
+function createSound(type) {
+  var nodes = [];
+  if (type === 'rain') {
+    var src = audioCtx.createBufferSource();
+    src.buffer = makeNoiseBuffer('white');
+    src.loop = true;
+    var filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 2200;
+    var filter2 = audioCtx.createBiquadFilter();
+    filter2.type = 'highpass';
+    filter2.frequency.value = 600;
+    src.connect(filter);
+    filter.connect(filter2);
+    filter2.connect(masterGain);
+    src.start();
+    nodes.push(src, filter, filter2);
+  } else if (type === 'ocean') {
+    var src2 = audioCtx.createBufferSource();
+    src2.buffer = makeNoiseBuffer('white');
+    src2.loop = true;
+    var f2 = audioCtx.createBiquadFilter();
+    f2.type = 'lowpass';
+    f2.frequency.value = 500;
+    var lfo = audioCtx.createOscillator();
+    lfo.frequency.value = 0.1;
+    var lfoGain = audioCtx.createGain();
+    lfoGain.gain.value = 300;
+    lfo.connect(lfoGain);
+    lfoGain.connect(f2.frequency);
+    src2.connect(f2);
+    f2.connect(masterGain);
+    src2.start();
+    lfo.start();
+    nodes.push(src2, f2, lfo, lfoGain);
+  } else if (type === 'forest') {
+    var src3 = audioCtx.createBufferSource();
+    src3.buffer = makeNoiseBuffer('white');
+    src3.loop = true;
+    var f3 = audioCtx.createBiquadFilter();
+    f3.type = 'bandpass';
+    f3.frequency.value = 800;
+    f3.Q.value = 0.5;
+    var lfo2 = audioCtx.createOscillator();
+    lfo2.frequency.value = 0.08;
+    var lfoGain2 = audioCtx.createGain();
+    lfoGain2.gain.value = 200;
+    lfo2.connect(lfoGain2);
+    lfoGain2.connect(f3.frequency);
+    src3.connect(f3);
+    f3.connect(masterGain);
+    src3.start();
+    lfo2.start();
+    nodes.push(src3, f3, lfo2, lfoGain2);
+  } else if (type === 'white') {
+    var src4 = audioCtx.createBufferSource();
+    src4.buffer = makeNoiseBuffer('white');
+    src4.loop = true;
+    src4.connect(masterGain);
+    src4.start();
+    nodes.push(src4);
+  } else if (type === 'brown') {
+    var src5 = audioCtx.createBufferSource();
+    src5.buffer = makeNoiseBuffer('brown');
+    src5.loop = true;
+    src5.connect(masterGain);
+    src5.start();
+    nodes.push(src5);
+  }
+  return nodes;
+}
+
+function toggleSound(type, btn) {
+  initAudio();
+  if (currentSound === type) {
+    stopSound();
+    return;
+  }
+  stopSound();
+  currentNodes = createSound(type);
+  currentSound = type;
+  document.querySelectorAll('.sound-btn').forEach(function(b) { b.classList.remove('playing'); });
+  btn.classList.add('playing');
+  document.getElementById('waveViz').classList.add('active');
+}
+
+function stopSound() {
+  currentNodes.forEach(function(n) {
+    try { if (n.stop) n.stop(); } catch (e) {}
+    try { n.disconnect(); } catch (e2) {}
+  });
+  currentNodes = [];
+  currentSound = null;
+  document.querySelectorAll('.sound-btn').forEach(function(b) { b.classList.remove('playing'); });
+  document.getElementById('waveViz').classList.remove('active');
+  if (soundTimer) { clearTimeout(soundTimer); soundTimer = null; }
+  document.getElementById('timerDisplay').textContent = '';
+  document.querySelectorAll('.timer-btn').forEach(function(b) { b.classList.remove('active'); });
+}
+
+// Wave viz bars
+(function initWaveViz() {
+  var viz = document.getElementById('waveViz');
+  for (var i = 0; i < 30; i++) {
+    var bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.animationDelay = (i * 0.05) + 's';
+    viz.appendChild(bar);
+  }
+})();
+
+// Timer
+function setTimer(minutes, btn) {
+  document.querySelectorAll('.timer-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (minutes === 0) {
+    if (soundTimer) { clearTimeout(soundTimer); soundTimer = null; }
+    document.getElementById('timerDisplay').textContent = '';
+    return;
+  }
+  if (btn) btn.classList.add('active');
+  if (soundTimer) clearTimeout(soundTimer);
+  soundTimer = setTimeout(function() { stopSound(); }, minutes * 60 * 1000);
+  document.getElementById('timerDisplay').textContent = 'Auto-stop dalam ' + minutes + ' menit';
+}
+
+// Volume
+document.getElementById('volumeSlider').addEventListener('input', function() {
+  if (masterGain) masterGain.gain.value = (this.value / 100) * 0.7;
+});
+
+// Init
+renderTips();
+renderWeekChart();
+renderStreak();
+</script>
+</body>
+</html>

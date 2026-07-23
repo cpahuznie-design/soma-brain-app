@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soma — Brain Analytics</title>
+<style>
+:root {
+  --bg-deep: #0f172a;
+  --bg-mid: #1e3a5f;
+  --card: #1e293b;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --teal: #0d9488;
+  --teal-bright: #2dd4bf;
+  --soft-blue: #38bdf8;
+  --lavender: #a5b4fc;
+  --lavender-light: #c7d2fe;
+  --purple: #8b5cf6;
+  --purple-light: #c4b5fd;
+  --orange: #fb923c;
+  --sleep: #818cf8;
+  --focus: #2dd4bf;
+  --memory: #c084fc;
+  --stress: #fb923c;
+  --border: rgba(56, 189, 248, 0.12);
+  --glow-teal: 0 0 24px rgba(13, 148, 136, 0.18);
+  --glow-blue: 0 0 24px rgba(56, 189, 248, 0.15);
+  --glow-lav: 0 0 24px rgba(165, 180, 252, 0.15);
+  --glow-purple: 0 0 24px rgba(139, 92, 246, 0.18);
+  --radius: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background: radial-gradient(ellipse at top, #1e3a5f 0%, #0f172a 70%);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(13, 148, 136, 0.08), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.06), transparent 50%),
+    radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.05), transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: drift 20s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-10px, 10px); }
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* NAVBAR */
+.navbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 14px 16px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 24px;
+  justify-content: center;
+  position: sticky;
+  top: 12px;
+  z-index: 100;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.navbar a {
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.navbar a:hover {
+  color: var(--text);
+  background: rgba(56, 189, 248, 0.1);
+  box-shadow: var(--glow-blue);
+}
+
+.navbar a.active {
+  color: var(--teal-bright);
+  background: rgba(13, 148, 136, 0.12);
+  box-shadow: var(--glow-teal);
+}
+
+.page-header { text-align: center; margin-bottom: 28px; }
+
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--teal-bright), var(--lavender));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px;
+}
+
+.page-header p { color: var(--text-muted); font-size: 0.95rem; }
+
+/* CARD */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--glow-teal);
+  transition: all 0.4s ease;
+}
+
+.card:hover {
+  box-shadow: 0 0 32px rgba(13, 148, 136, 0.25);
+  border-color: rgba(45, 212, 191, 0.3);
+}
+
+.card h2 {
+  font-size: 1.25rem;
+  margin-bottom: 16px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card h2 .icon { font-size: 1.4rem; }
+
+/* OVERVIEW */
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: center;
+}
+
+.overview-visual { text-align: center; }
+
+.score-big {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: var(--teal-bright);
+  text-shadow: 0 0 25px rgba(45, 212, 191, 0.4);
+  line-height: 1;
+}
+
+.score-status {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 8px;
+  letter-spacing: 1px;
+}
+
+.score-compare {
+  margin-top: 14px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.score-compare .up { color: var(--teal-bright); font-weight: 600; }
+.score-compare .down { color: var(--orange); font-weight: 600; }
+
+.overview-chart svg { width: 100%; display: block; }
+
+/* CORRELATION CARDS */
+.corr-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.corr-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  transition: all 0.3s ease;
+}
+
+.corr-card:hover { border-color: var(--teal); box-shadow: var(--glow-teal); }
+
+.corr-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px;
+  background: rgba(13, 148, 136, 0.1);
+}
+
+.corr-icon.sleep { background: rgba(129, 140, 248, 0.12); }
+.corr-icon.stress { background: rgba(251, 146, 60, 0.12); }
+
+.corr-body { flex: 1; }
+
+.corr-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--lavender-light);
+  margin-bottom: 4px;
+}
+
+.corr-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.corr-text strong { color: var(--teal-bright); }
+.corr-text .neg { color: var(--orange); }
+
+/* DONUT CHART */
+.donut-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.donut-chart svg { width: 100%; max-width: 280px; display: block; margin: 0 auto; }
+
+.donut-legend { display: flex; flex-direction: column; gap: 12px; }
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+
+.legend-color {
+  width: 16px; height: 16px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.legend-label { color: var(--text); flex: 1; }
+.legend-val { color: var(--lavender-light); font-weight: 600; }
+
+/* HEATMAP */
+.heatmap-wrap {
+  margin-top: 16px;
+  overflow-x: auto;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  min-width: 500px;
+}
+
+.heatmap-cell {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.heatmap-cell:hover {
+  transform: scale(1.15);
+  z-index: 5;
+  box-shadow: 0 0 12px rgba(45, 212, 191, 0.5);
+}
+
+.heatmap-cell .tip {
+  display: none;
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  z-index: 10;
+  color: var(--text);
+}
+
+.heatmap-cell:hover .tip { display: block; }
+
+.heatmap-labels {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 6px;
+  min-width: 500px;
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.heatmap-legend .scale {
+  display: flex;
+  gap: 3px;
+}
+
+.heatmap-legend .scale span {
+  width: 18px; height: 18px;
+  border-radius: 4px;
+}
+
+/* SUGGESTIONS */
+.suggestion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.suggestion-item {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--teal);
+  border-radius: 10px;
+  padding: 16px 18px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.suggestion-item.warn { border-left-color: var(--orange); }
+.suggestion-item.info { border-left-color: var(--soft-blue); }
+.suggestion-item.purple { border-left-color: var(--purple); }
+
+.suggestion-icon { font-size: 1.4rem; flex-shrink: 0; }
+.suggestion-text { color: var(--text); }
+.suggestion-text strong { color: var(--lavender-light); }
+
+/* ACHIEVEMENT GALLERY */
+.ach-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.ach-item {
+  text-align: center;
+  padding: 16px 10px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(165, 180, 252, 0.1);
+  transition: all 0.3s ease;
+}
+
+.ach-item.unlocked {
+  border-color: var(--teal);
+  box-shadow: var(--glow-teal);
+  background: rgba(13, 148, 136, 0.08);
+}
+
+.ach-item.locked { opacity: 0.35; filter: grayscale(1); }
+
+.ach-item .ach-icon { font-size: 2rem; margin-bottom: 8px; }
+.ach-item .ach-name { font-size: 0.78rem; font-weight: 600; color: var(--lavender-light); }
+.ach-item .ach-desc { font-size: 0.68rem; color: var(--text-muted); margin-top: 3px; }
+
+.ach-total {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 1rem;
+  color: var(--lavender);
+  font-weight: 600;
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid var(--teal);
+  color: var(--teal-bright);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  z-index: 999;
+  transition: all 0.4s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--glow-teal);
+}
+
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* DEMO BADGE */
+.demo-badge {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  color: var(--lavender);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  z-index: 200;
+}
+
+/* FOOTER */
+.footer {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 24px;
+  margin-top: 20px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 700px) {
+  .overview-grid, .donut-wrap, .corr-grid { grid-template-columns: 1fr; }
+  .navbar { justify-content: flex-start; overflow-x: auto; }
+  .page-header h1 { font-size: 1.5rem; }
+}
+
+@media (max-width: 500px) {
+  .ach-gallery { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <nav class="navbar">
+    <a href="dashboard.html" class="active">🧠 Dashboard</a>
+    <a href="sleep.html">😴 Tidur</a>
+    <a href="relax.html">🌊 Relaksasi</a>
+    <a href="game.html">🎮 Game</a>
+    <a href="learn.html">📖 Belajar</a>
+    <a href="settings.html">⚙️ Settings</a>
+  </nav>
+
+  <div class="page-header">
+    <h1>📊 Brain Analytics</h1>
+    <p>Analisa mendalam kesehatan otak Bapak</p>
+  </div>
+
+  <!-- SECTION 1: BRAIN HEALTH OVERVIEW -->
+  <div class="card">
+    <h2><span class="icon">🧠</span> Brain Health Overview — 30 Hari</h2>
+    <div class="overview-grid">
+      <div class="overview-visual">
+        <div class="score-big" id="overviewScore">0</div>
+        <div class="score-status" id="overviewStatus">—</div>
+        <div class="score-compare" id="overviewCompare">—</div>
+      </div>
+      <div class="overview-chart">
+        <svg viewBox="0 0 500 240" id="brainTrendChart"></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: CORRELATION ANALYSIS -->
+  <div class="card">
+    <h2><span class="icon">🔗</span> Correlation Analysis</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem">Hubungan antara aktivitas otak dan performa kognitif.</p>
+    <div class="corr-grid" id="corrGrid"></div>
+  </div>
+
+  <!-- SECTION 3: CATEGORY BREAKDOWN -->
+  <div class="card">
+    <h2><span class="icon">🍩</span> Category Breakdown</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem">Kontribusi tiap kategori ke brain score.</p>
+    <div class="donut-wrap">
+      <div class="donut-chart">
+        <svg viewBox="0 0 200 200" id="donutChart"></svg>
+      </div>
+      <div class="donut-legend" id="donutLegend"></div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: WEEKLY HEATMAP -->
+  <div class="card">
+    <h2><span class="icon">🗓️</span> Weekly Heatmap — 28 Hari</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem">Warna = brain score (gelap=rendah, terang=tinggi). Hover untuk detail.</p>
+    <div class="heatmap-wrap">
+      <div class="heatmap-labels" id="heatLabels"></div>
+      <div class="heatmap-grid" id="heatGrid"></div>
+    </div>
+    <div class="heatmap-legend">
+      <span>Rendah</span>
+      <div class="scale" id="heatScale"></div>
+      <span>Tinggi</span>
+    </div>
+  </div>
+
+  <!-- SECTION 5: PERSONAL SUGGESTIONS -->
+  <div class="card">
+    <h2><span class="icon">🤖</span> Personal Suggestions</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem">Saran berdasarkan pola data Bapak.</p>
+    <div class="suggestion-list" id="suggestionList"></div>
+  </div>
+
+  <!-- SECTION 6: ACHIEVEMENT GALLERY -->
+  <div class="card">
+    <h2><span class="icon">🏆</span> Achievement Gallery</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem">Semua badge dari semua fitur SOMA.</p>
+    <div class="ach-gallery" id="achGallery"></div>
+    <div class="ach-total" id="achTotal">0 dari 0</div>
+  </div>
+</div>
+
+<div class="footer">
+  Soma — Bangunkan kekuatan otak yang tidur • Dibuat dengan ❤️ untuk Pak Husni
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========================================
+   SOMA BRAIN ANALYTICS
+   ======================================== */
+
+/* ===== SESSION CHECK ===== */
+(function() {
+  var params = new URLSearchParams(location.search);
+  var demo = params.get('demo') === '1';
+  if (demo) {
+    var badge = document.createElement('div');
+    badge.className = 'demo-badge';
+    badge.textContent = 'DEMO MODE';
+    document.body.appendChild(badge);
+  } else {
+    var session = localStorage.getItem('soma_session');
+    if (!session) {
+      location.href = 'login.html';
+      return;
+    }
+  }
+})();
+
+/* ===== HELPERS ===== */
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2800);
+}
+
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+function avg(arr) {
+  if (!arr || arr.length === 0) return 0;
+  return arr.reduce(function(a, b) { return a + b; }, 0) / arr.length;
+}
+
+/* ===== DATA LOADING & DUMMY GENERATION ===== */
+function loadData() {
+  var sleepData = JSON.parse(localStorage.getItem('soma_sleep_data') || '[]');
+  var focusData = JSON.parse(localStorage.getItem('soma_focus_data') || '[]');
+  var memoryScores = JSON.parse(localStorage.getItem('soma_memory_scores') || '{}');
+  var stressData = JSON.parse(localStorage.getItem('soma_stress_data') || '[]');
+  var brainScore = JSON.parse(localStorage.getItem('soma_brain_score') || '[]');
+
+  /* generate 30-day dummy if empty or too short */
+  var needDummy = brainScore.length < 30 || sleepData.length < 7 || stressData.length < 7;
+
+  if (needDummy) {
+    var today = new Date();
+    sleepData = [];
+    stressData = [];
+    focusData = [];
+    brainScore = [];
+
+    for (var i = 29; i >= 0; i--) {
+      var d = new Date(today);
+      d.setDate(d.getDate() - i);
+      var ds = d.toISOString().slice(0, 10);
+
+      var hours = 5.5 + Math.random() * 2.8;
+      var quality = Math.round(4 + Math.random() * 5);
+      sleepData.push({ date: ds, hours: parseFloat(hours.toFixed(1)), quality: quality, duration: { hours: Math.floor(hours), minutes: Math.round((hours % 1) * 60), total: Math.round(hours * 60) } });
+
+      var stressLvl = Math.round(2 + Math.random() * 6);
+      stressData.push({ date: ds, level: stressLvl, notes: '' });
+
+      var focusLvl = Math.round(3 + Math.random() * 6);
+      var sessions = Math.floor(Math.random() * 5);
+      focusData.push({ date: ds, level: focusLvl, sessions: sessions, notes: '' });
+
+      var sleepScore = Math.min(100, Math.round((hours / 8) * 100));
+      var focusScore = Math.min(100, sessions * 20 + 15 + Math.round(Math.random() * 10));
+      var memScore = Math.round(45 + Math.random() * 40);
+      var stressScore = Math.min(100, stressLvl * 10);
+      var total = Math.round((sleepScore + focusScore + memScore + (100 - stressScore)) / 4);
+      brainScore.push({ date: ds, score: total, sleep: sleepScore, focus: focusScore, memory: memScore, stress: stressScore });
+    }
+
+    localStorage.setItem('soma_sleep_data', JSON.stringify(sleepData));
+    localStorage.setItem('soma_stress_data', JSON.stringify(stressData));
+    localStorage.setItem('soma_focus_data', JSON.stringify(focusData));
+    localStorage.setItem('soma_brain_score', JSON.stringify(brainScore));
+  }
+
+  /* ensure memoryScores has weekly data */
+  if (!memoryScores.weekly || memoryScores.weekly.length === 0) {
+    memoryScores = {
+      wordRecall: { best: Math.round(60 + Math.random() * 30), plays: 5 },
+      sequence: { best: Math.round(50 + Math.random() * 30), plays: 4 },
+      pattern: { best: Math.round(55 + Math.random() * 30), plays: 3 },
+      number: { best: Math.round(50 + Math.random() * 30), plays: 4 },
+      weekly: []
+    };
+    for (var j = 6; j >= 0; j--) {
+      var d2 = new Date(); d2.setDate(d2.getDate() - j);
+      memoryScores.weekly.push({ day: 6 - j, score: Math.round(45 + Math.random() * 40), date: d2.toISOString().slice(0, 10) });
+    }
+    localStorage.setItem('soma_memory_scores', JSON.stringify(memoryScores));
+  }
+
+  return { sleepData: sleepData, focusData: focusData, memoryScores: memoryScores, stressData: stressData, brainScore: brainScore };
+}
+
+var DATA = loadData();
+
+/* ===== BRAIN HEALTH OVERVIEW ===== */
+function renderOverview() {
+  var bs = DATA.brainScore;
+  var todayScore = bs.length > 0 ? bs[bs.length - 1].score : 0;
+  var lastWeek = bs.slice(-7);
+  var prevWeek = bs.slice(-14, -7);
+  var thisWeekAvg = avg(lastWeek.map(function(d) { return d.score; }));
+  var prevWeekAvg = avg(prevWeek.map(function(d) { return d.score; }));
+  var diff = thisWeekAvg - prevWeekAvg;
+
+  /* animate score */
+  var el = document.getElementById('overviewScore');
+  var cur = 0;
+  var timer = setInterval(function() {
+    cur += 2;
+    if (cur >= todayScore) { cur = todayScore; clearInterval(timer); }
+    el.textContent = cur;
+  }, 25);
+
+  /* status */
+  var statusEl = document.getElementById('overviewStatus');
+  if (todayScore < 40) { statusEl.textContent = 'Otak Tidur'; statusEl.style.color = 'var(--orange)'; }
+  else if (todayScore <= 70) { statusEl.textContent = 'Otak Bangkit'; statusEl.style.color = 'var(--lavender)'; }
+  else { statusEl.textContent = 'Otak Optimal'; statusEl.style.color = 'var(--teal-bright)'; }
+
+  /* compare */
+  var compEl = document.getElementById('overviewCompare');
+  if (prevWeekAvg > 0) {
+    var pct = Math.round((diff / prevWeekAvg) * 100);
+    if (diff > 0) compEl.innerHTML = 'Minggu ini vs minggu lalu: <span class="up">▲ +' + pct + '%</span> (naik ' + Math.round(diff) + ' poin)';
+    else if (diff < 0) compEl.innerHTML = 'Minggu ini vs minggu lalu: <span class="down">▼ ' + pct + '%</span> (turun ' + Math.abs(Math.round(diff)) + ' poin)';
+    else compEl.innerHTML = 'Minggu ini vs minggu lalu: <span style="color:var(--lavender)">➡ stabil</span>';
+  } else {
+    compEl.textContent = 'Data minggu lalu belum cukup untuk perbandingan.';
+  }
+
+  drawTrendChart();
+}
+
+function drawTrendChart() {
+  var bs = DATA.brainScore;
+  var W = 500, H = 240, padX = 40, padTop = 25, padBot = 35;
+  var chartW = W - padX - 20, chartH = H - padTop - padBot;
+  var scores = bs.map(function(d) { return d.score; });
+  var maxVal = 100;
+  var pts = scores.map(function(s, i) {
+    var x = padX + (chartW / (scores.length - 1)) * i;
+    var y = padTop + chartH - (s / maxVal) * chartH;
+    return { x: x, y: y, score: s };
+  });
+  var pathD = 'M' + pts[0].x + ',' + pts[0].y;
+  for (var i = 1; i < pts.length; i++) pathD += ' L' + pts[i].x + ',' + pts[i].y;
+  var areaD = pathD + ' L' + pts[pts.length - 1].x + ',' + (padTop + chartH) + ' L' + pts[0].x + ',' + (padTop + chartH) + ' Z';
+  var svg = '<defs>';
+  svg += '<linearGradient id="btLine" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#2dd4bf"/><stop offset="100%" stop-color="#a5b4fc"/></linearGradient>';
+  svg += '<linearGradient id="btArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2dd4bf" stop-opacity=".3"/><stop offset="100%" stop-color="#2dd4bf" stop-opacity="0"/></linearGradient>';
+  svg += '</defs>';
+  for (var g = 0; g <= 4; g++) {
+    var gy = padTop + (chartH / 4) * g;
+    svg += '<line x1="' + padX + '" y1="' + gy + '" x2="' + (padX + chartW) + '" y2="' + gy + '" stroke="rgba(165,180,252,.08)" stroke-width="1"/>';
+    svg += '<text x="15" y="' + (gy + 4) + '" fill="#94a3b8" font-size="9">' + (100 - g * 25) + '</text>';
+  }
+  svg += '<path d="' + areaD + '" fill="url(#btArea)"/>';
+  svg += '<path d="' + pathD + '" stroke="url(#btLine)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px rgba(45,212,191,.4))"/>';
+  /* dots every 5 days to avoid clutter */
+  pts.forEach(function(p, i) {
+    if (i % 5 === 0 || i === pts.length - 1) {
+      svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="3" fill="#0f172a" stroke="#2dd4bf" stroke-width="1.5"/>';
+    }
+  });
+  /* x labels every 10 days */
+  var dayLabels = [1, 10, 20, 30];
+  dayLabels.forEach(function(d) {
+    var idx = d - 1;
+    if (idx < pts.length) {
+      svg += '<text x="' + pts[idx].x + '" y="' + (H - 12) + '" text-anchor="middle" fill="#94a3b8" font-size="10">H-' + (30 - d + 1) + '</text>';
+    }
+  });
+  document.getElementById('brainTrendChart').innerHTML = svg;
+}
+
+/* ===== CORRELATION ANALYSIS ===== */
+function renderCorrelations() {
+  var sleep = DATA.sleepData;
+  var focus = DATA.focusData;
+  var memory = DATA.memoryScores;
+  var stress = DATA.stressData;
+
+  /* Tidur vs Memory: compare memory scores on days with 7+ hrs vs <7 hrs */
+  var memScores = memory.weekly || [];
+  var sleepGoodMem = [], sleepBadMem = [];
+  /* align by date if possible */
+  memScores.forEach(function(m) {
+    var s = sleep.filter(function(x) { return x.date === m.date; })[0];
+    if (s) {
+      if (s.hours >= 7) sleepGoodMem.push(m.score);
+      else sleepBadMem.push(m.score);
+    }
+  });
+  var goodMemAvg = avg(sleepGoodMem);
+  var badMemAvg = avg(sleepBadMem);
+  var memDiff = goodMemAvg - badMemAvg;
+
+  /* Tidur vs Focus */
+  var sleepGoodFocus = [], sleepBadFocus = [];
+  focus.forEach(function(f) {
+    var s = sleep.filter(function(x) { return x.date === f.date; })[0];
+    if (s) {
+      if (s.hours >= 7) sleepGoodFocus.push(f.level * 10);
+      else sleepBadFocus.push(f.level * 10);
+    }
+  });
+  var goodFocusAvg = avg(sleepGoodFocus);
+  var badFocusAvg = avg(sleepBadFocus);
+  var focusDiff = goodFocusAvg - badFocusAvg;
+
+  /* Stress vs Memory */
+  var stressHighMem = [], stressLowMem = [];
+  memScores.forEach(function(m) {
+    var s = stress.filter(function(x) { return x.date === m.date; })[0];
+    if (s) {
+      if (s.level >= 6) stressHighMem.push(m.score);
+      else stressLowMem.push(m.score);
+    }
+  });
+  var highStressMem = avg(stressHighMem);
+  var lowStressMem = avg(stressLowMem);
+  var stressMemDiff = lowStressMem - highStressMem;
+
+  /* Stress vs Focus */
+  var stressHighFocus = [], stressLowFocus = [];
+  focus.forEach(function(f) {
+    var s = stress.filter(function(x) { return x.date === f.date; })[0];
+    if (s) {
+      if (s.level >= 6) stressHighFocus.push(f.level * 10);
+      else stressLowFocus.push(f.level * 10);
+    }
+  });
+  var highStressFocus = avg(stressHighFocus);
+  var lowStressFocus = avg(stressLowFocus);
+  var stressFocusDiff = lowStressFocus - highStressFocus;
+
+  var html = '';
+
+  /* Tidur vs Memory */
+  html += '<div class="corr-card">' +
+    '<div class="corr-icon sleep">😴</div>' +
+    '<div class="corr-body">' +
+      '<div class="corr-title">Tidur vs Memory</div>' +
+      '<div class="corr-text">Hari tidur <strong>7+ jam</strong>, memory score ' + (memDiff >= 0 ? '<strong>naik ' + Math.round(memDiff) + ' poin</strong>' : '<span class="neg">turun ' + Math.abs(Math.round(memDiff)) + ' poin</span>') + ' dibanding tidur kurang.</div>' +
+    '</div></div>';
+
+  /* Tidur vs Focus */
+  html += '<div class="corr-card">' +
+    '<div class="corr-icon sleep">😴</div>' +
+    '<div class="corr-body">' +
+      '<div class="corr-title">Tidur vs Focus</div>' +
+      '<div class="corr-text">Hari tidur <strong>7+ jam</strong>, focus score ' + (focusDiff >= 0 ? '<strong>naik ' + Math.round(focusDiff) + ' poin</strong>' : '<span class="neg">turun ' + Math.abs(Math.round(focusDiff)) + ' poin</span>') + ' dibanding tidur kurang.</div>' +
+    '</div></div>';
+
+  /* Stress vs Memory */
+  html += '<div class="corr-card">' +
+    '<div class="corr-icon stress">😣</div>' +
+    '<div class="corr-body">' +
+      '<div class="corr-title">Stress vs Memory</div>' +
+      '<div class="corr-text">Hari stress <span class="neg">tinggi</span>, memory score ' + (stressMemDiff >= 0 ? '<strong>naik ' + Math.round(stressMemDiff) + ' poin</strong>' : '<span class="neg">turun ' + Math.abs(Math.round(stressMemDiff)) + ' poin</span>') + ' dibanding hari tenang.</div>' +
+    '</div></div>';
+
+  /* Stress vs Focus */
+  html += '<div class="corr-card">' +
+    '<div class="corr-icon stress">😣</div>' +
+    '<div class="corr-body">' +
+      '<div class="corr-title">Stress vs Focus</div>' +
+      '<div class="corr-text">Hari stress <span class="neg">tinggi</span>, focus score ' + (stressFocusDiff >= 0 ? '<strong>naik ' + Math.round(stressFocusDiff) + ' poin</strong>' : '<span class="neg">turun ' + Math.abs(Math.round(stressFocusDiff)) + ' poin</span>') + ' dibanding hari tenang.</div>' +
+    '</div></div>';
+
+  document.getElementById('corrGrid').innerHTML = html;
+}
+
+/* ===== CATEGORY BREAKDOWN DONUT ===== */
+function renderDonut() {
+  var bs = DATA.brainScore;
+  var last7 = bs.slice(-7);
+  var sleepAvg = avg(last7.map(function(d) { return d.sleep; }));
+  var focusAvg = avg(last7.map(function(d) { return d.focus; }));
+  var memoryAvg = avg(last7.map(function(d) { return d.memory; }));
+  var stressAvg = avg(last7.map(function(d) { return 100 - d.stress; })); /* invert: lower stress = better */
+
+  var total = sleepAvg + focusAvg + memoryAvg + stressAvg;
+  var cats = [
+    { name: 'Tidur', val: sleepAvg, color: '#818cf8' },
+    { name: 'Fokus', val: focusAvg, color: '#2dd4bf' },
+    { name: 'Memory', val: memoryAvg, color: '#c084fc' },
+    { name: 'Stress (low)', val: stressAvg, color: '#fb923c' }
+  ];
+
+  /* donut SVG */
+  var cx = 100, cy = 100, r = 70, rInner = 45;
+  var startAngle = -Math.PI / 2;
+  var paths = '';
+  cats.forEach(function(c) {
+    var pct = c.val / total;
+    var endAngle = startAngle + pct * 2 * Math.PI;
+    var x1 = cx + r * Math.cos(startAngle);
+    var y1 = cy + r * Math.sin(startAngle);
+    var x2 = cx + r * Math.cos(endAngle);
+    var y2 = cy + r * Math.sin(endAngle);
+    var xi2 = cx + rInner * Math.cos(endAngle);
+    var yi2 = cy + rInner * Math.sin(endAngle);
+    var xi1 = cx + rInner * Math.cos(startAngle);
+    var yi1 = cy + rInner * Math.sin(startAngle);
+    var largeArc = pct > 0.5 ? 1 : 0;
+    paths += '<path d="M' + x1 + ',' + y1 + ' A' + r + ',' + r + ' 0 ' + largeArc + ' 1 ' + x2 + ',' + y2 +
+      ' L' + xi2 + ',' + yi2 + ' A' + rInner + ',' + rInner + ' 0 ' + largeArc + ' 0 ' + xi1 + ',' + yi1 + ' Z" ' +
+      'fill="' + c.color + '" opacity="0.85" style="filter:drop-shadow(0 0 6px ' + c.color + '55)"/>';
+    startAngle = endAngle;
+  });
+  /* center text */
+  var centerScore = Math.round(avg(last7.map(function(d) { return d.score; })));
+  paths += '<text x="100" y="98" text-anchor="middle" fill="#2dd4bf" font-size="28" font-weight="900">' + centerScore + '</text>';
+  paths += '<text x="100" y="115" text-anchor="middle" fill="#94a3b8" font-size="9">avg 7 hari</text>';
+
+  document.getElementById('donutChart').innerHTML = paths;
+
+  /* legend */
+  var legendHtml = '';
+  cats.forEach(function(c) {
+    var pct = Math.round((c.val / total) * 100);
+    legendHtml += '<div class="legend-item">' +
+      '<div class="legend-color" style="background:' + c.color + '"></div>' +
+      '<span class="legend-label">' + c.name + '</span>' +
+      '<span class="legend-val">' + pct + '%</span>' +
+    '</div>';
+  });
+  document.getElementById('donutLegend').innerHTML = legendHtml;
+}
+
+/* ===== WEEKLY HEATMAP ===== */
+function renderHeatmap() {
+  var bs = DATA.brainScore;
+  var last28 = bs.slice(-28);
+  var labels = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+  var labelsHtml = labels.map(function(l) { return '<div>' + l + '</div>'; }).join('');
+  document.getElementById('heatLabels').innerHTML = labelsHtml;
+
+  /* color scale: 0-100 → dark to bright teal */
+  function scoreColor(s) {
+    if (s < 20) return '#0f172a';
+    if (s < 35) return '#134e4a';
+    if (s < 50) return '#0f766e';
+    if (s < 65) return '#0d9488';
+    if (s < 80) return '#14b8a6';
+    return '#2dd4bf';
+  }
+
+  /* align to weekday: find day-of-week of first entry */
+  var grid = '';
+  var firstDate = last28.length > 0 ? new Date(last28[0].date) : new Date();
+  var firstDow = (firstDate.getDay() + 6) % 7; /* 0=Mon */
+  /* pad empty cells */
+  for (var p = 0; p < firstDow; p++) {
+    grid += '<div style="aspect-ratio:1"></div>';
+  }
+  last28.forEach(function(d) {
+    var c = scoreColor(d.score);
+    var dateStr = d.date;
+    var dayLabel = new Date(d.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+    grid += '<div class="heatmap-cell" style="background:' + c + '">' +
+      d.score +
+      '<span class="tip">' + dayLabel + ' • Score: ' + d.score + '</span>' +
+    '</div>';
+  });
+  document.getElementById('heatGrid').innerHTML = grid;
+
+  /* scale legend */
+  var scaleColors = ['#0f172a', '#134e4a', '#0f766e', '#0d9488', '#14b8a6', '#2dd4bf'];
+  var scaleHtml = scaleColors.map(function(c) { return '<span style="background:' + c + '"></span>'; }).join('');
+  document.getElementById('heatScale').innerHTML = scaleHtml;
+}
+
+/* ===== PERSONAL SUGGESTIONS ===== */
+function renderSuggestions() {
+  var sleep = DATA.sleepData;
+  var stress = DATA.stressData;
+  var focus = DATA.focusData;
+  var memory = DATA.memoryScores;
+
+  var last7Sleep = sleep.slice(-7);
+  var avgSleep = avg(last7Sleep.map(function(d) { return d.hours; }));
+  var last3Stress = stress.slice(-3);
+  var avgStress3 = avg(last3Stress.map(function(d) { return d.level; }));
+  var last7Focus = focus.slice(-7);
+  var prev7Focus = focus.slice(-14, -7);
+  var focusTrend = avg(last7Focus.map(function(d) { return d.level; })) - avg(prev7Focus.map(function(d) { return d.level; }));
+  var memWeekly = memory.weekly || [];
+  var avgMem = avg(memWeekly.map(function(d) { return d.score; }));
+
+  var html = '';
+
+  /* Sleep suggestion */
+  if (avgSleep > 0 && avgSleep < 7) {
+    html += '<div class="suggestion-item warn">' +
+      '<div class="suggestion-icon">😴</div>' +
+      '<div class="suggestion-text">Tidur Bapak rata-rata <strong>' + avgSleep.toFixed(1) + ' jam</strong>. Target 7-8 jam. Coba tidur 30 menit lebih awal.</div>' +
+    '</div>';
+  } else if (avgSleep >= 7) {
+    html += '<div class="suggestion-item">' +
+      '<div class="suggestion-icon">✅</div>' +
+      '<div class="suggestion-text">Tidur Bapak rata-rata <strong>' + avgSleep.toFixed(1) + ' jam</strong>. Bagus, pertahankan!</div>' +
+    '</div>';
+  }
+
+  /* Stress suggestion */
+  if (avgStress3 >= 6) {
+    html += '<div class="suggestion-item warn">' +
+      '<div class="suggestion-icon">🌿</div>' +
+      '<div class="suggestion-text">Stress Bapak tinggi <strong>3 hari terakhir</strong> (rata-rata ' + avgStress3.toFixed(1) + '/10). Coba breathing exercise 4-7-8 sebelum tidur.</div>' +
+    '</div>';
+  } else if (avgStress3 > 0 && avgStress3 < 4) {
+    html += '<div class="suggestion-item">' +
+      '<div class="suggestion-icon">😌</div>' +
+      '<div class="suggestion-text">Stress Bapak rendah <strong>3 hari terakhir</strong>. Otak dalam kondisi tenang, pertahankan!</div>' +
+    '</div>';
+  }
+
+  /* Focus suggestion */
+  if (focusTrend < -1) {
+    html += '<div class="suggestion-item info">' +
+      '<div class="suggestion-icon">🎯</div>' +
+      '<div class="suggestion-text">Focus score <strong>turun minggu ini</strong> (' + Math.abs(focusTrend).toFixed(1) + ' poin). Coba pomodoro 25 menit + brown noise.</div>' +
+    '</div>';
+  } else if (focusTrend > 1) {
+    html += '<div class="suggestion-item">' +
+      '<div class="suggestion-icon">📈</div>' +
+      '<div class="suggestion-text">Focus score <strong>naik minggu ini</strong> (+' + focusTrend.toFixed(1) + ' poin). Konsisten!</div>' +
+    '</div>';
+  }
+
+  /* Memory suggestion */
+  if (avgMem > 0 && avgMem < 55) {
+    html += '<div class="suggestion-item purple">' +
+      '<div class="suggestion-icon">🧩</div>' +
+      '<div class="suggestion-text">Memory score rendah (<strong>' + Math.round(avgMem) + '</strong>). Main memory game 10 menit/hari untuk latih hippocampus.</div>' +
+    '</div>';
+  } else if (avgMem >= 70) {
+    html += '<div class="suggestion-item">' +
+      '<div class="suggestion-icon">🧠</div>' +
+      '<div class="suggestion-text">Memory score bagus (<strong>' + Math.round(avgMem) + '</strong>). Otak Bapak tajam!</div>' +
+    '</div>';
+  }
+
+  /* default if no suggestions */
+  if (html === '') {
+    html = '<div class="suggestion-item"><div class="suggestion-icon">📊</div><div class="suggestion-text">Data belum cukup untuk saran personal. Gunakan SOMA beberapa hari lagi untuk analisa yang lebih akurat.</div></div>';
+  }
+
+  document.getElementById('suggestionList').innerHTML = html;
+}
+
+/* ===== ACHIEVEMENT GALLERY ===== */
+var ALL_ACHIEVEMENTS = [
+  /* Sleep */
+  { id: 'sleep1', cat: 'sleep', icon: '🌙', name: 'Tidur Cukup', desc: '1 malam 7+ jam' },
+  { id: 'sleep7', cat: 'sleep', icon: '😴', name: 'Tidur Nyenyak', desc: '7 hari streak 7+ jam' },
+  { id: 'sleep30', cat: 'sleep', icon: '🛏️', name: 'Tidur Sehat', desc: '30 malam 7+ jam' },
+  /* Focus */
+  { id: 'focus1', cat: 'focus', icon: '🎯', name: 'Fokus Pemula', desc: '1 sesi pomodoro' },
+  { id: 'focus10', cat: 'focus', icon: '⚡', name: 'Fokus Tajam', desc: '10 sesi fokus' },
+  { id: 'focus50', cat: 'focus', icon: '🏆', name: 'Fokus Master', desc: '50 sesi fokus' },
+  /* Memory */
+  { id: 'mem1', cat: 'memory', icon: '🧩', name: 'Pemain Pemula', desc: '1 game memory' },
+  { id: 'mem25', cat: 'memory', icon: '🔮', name: 'Pemain Cermat', desc: '25 game memory' },
+  { id: 'mem100', cat: 'memory', icon: '👑', name: 'Otak Fotografik', desc: '100 game memory' },
+  /* Learn */
+  { id: 'learn1', cat: 'learn', icon: '🌱', name: 'Pembelajar Pemula', desc: '1 materi dipelajari' },
+  { id: 'learn10', cat: 'learn', icon: '📖', name: 'Rajin Belajar', desc: '10 materi dipelajari' },
+  { id: 'learn50', cat: 'learn', icon: '🧠', name: 'Otak Spons', desc: '50 materi dipelajari' },
+  /* Chess */
+  { id: 'chess1', cat: 'chess', icon: '♟️', name: 'Pemain Catur', desc: '1 game catur' },
+  { id: 'chess10', cat: 'chess', icon: '🏰', name: 'Taktikus', desc: '10 game catur' },
+  { id: 'chess_win5', cat: 'chess', icon: '👑', name: 'Jenius Catur', desc: '5 kemenangan' },
+];
+
+function checkAchievementUnlocked(ach) {
+  /* check based on actual data in localStorage */
+  switch (ach.id) {
+    case 'sleep1':
+      var sd = JSON.parse(localStorage.getItem('soma_sleep_data') || '[]');
+      return sd.some(function(d) { return d.hours >= 7 || (d.duration && d.duration.hours >= 7); });
+    case 'sleep7':
+      var sd7 = JSON.parse(localStorage.getItem('soma_sleep_data') || '[]');
+      var last7 = sd7.slice(-7);
+      return last7.length >= 7 && last7.every(function(d) { return d.hours >= 7 || (d.duration && d.duration.hours >= 7); });
+    case 'sleep30':
+      var sd30 = JSON.parse(localStorage.getItem('soma_sleep_data') || '[]');
+      return sd30.length >= 30;
+    case 'focus1':
+      var fd = JSON.parse(localStorage.getItem('soma_focus_data') || '[]');
+      return fd.some(function(d) { return d.sessions > 0 || d.level >= 5; });
+    case 'focus10':
+      var fd10 = JSON.parse(localStorage.getItem('soma_focus_data') || '[]');
+      var ph = JSON.parse(localStorage.getItem('soma_pomodoro_history') || '[]');
+      var totalF = ph.length + fd10.reduce(function(a, d) { return a + (d.sessions || 0); }, 0);
+      return totalF >= 10;
+    case 'focus50':
+      var ph50 = JSON.parse(localStorage.getItem('soma_pomodoro_history') || '[]');
+      return ph50.length >= 50;
+    case 'mem1':
+      var ms = JSON.parse(localStorage.getItem('soma_memory_scores') || '{}');
+      var totalPlays = (ms.wordRecall && ms.wordRecall.plays || 0) + (ms.sequence && ms.sequence.plays || 0) + (ms.pattern && ms.pattern.plays || 0) + (ms.number && ms.number.plays || 0);
+      return totalPlays >= 1;
+    case 'mem25':
+      var ms25 = JSON.parse(localStorage.getItem('soma_memory_scores') || '{}');
+      var tp25 = (ms25.wordRecall && ms25.wordRecall.plays || 0) + (ms25.sequence && ms25.sequence.plays || 0) + (ms25.pattern && ms25.pattern.plays || 0) + (ms25.number && ms25.number.plays || 0);
+      return tp25 >= 25;
+    case 'mem100':
+      var ms100 = JSON.parse(localStorage.getItem('soma_memory_scores') || '{}');
+      var tp100 = (ms100.wordRecall && ms100.wordRecall.plays || 0) + (ms100.sequence && ms100.sequence.plays || 0) + (ms100.pattern && ms100.pattern.plays || 0) + (ms100.number && ms100.number.plays || 0);
+      return tp100 >= 100;
+    case 'learn1':
+      var lm = JSON.parse(localStorage.getItem('soma_learn_materials') || '[]');
+      return lm.length >= 1;
+    case 'learn10':
+      var lm10 = JSON.parse(localStorage.getItem('soma_learn_materials') || '[]');
+      return lm10.length >= 10;
+    case 'learn50':
+      var lm50 = JSON.parse(localStorage.getItem('soma_learn_materials') || '[]');
+      return lm50.length >= 50;
+    case 'chess1':
+      var cd = JSON.parse(localStorage.getItem('soma_chess_data') || '[]');
+      return cd.length >= 1;
+    case 'chess10':
+      var cd10 = JSON.parse(localStorage.getItem('soma_chess_data') || '[]');
+      return cd10.length >= 10;
+    case 'chess_win5':
+      var cdw = JSON.parse(localStorage.getItem('soma_chess_data') || '[]');
+      return cdw.filter(function(g) { return g.result === 'win'; }).length >= 5;
+    default:
+      return false;
+  }
+}
+
+function renderAchievements() {
+  var unlockedCount = 0;
+  var html = '';
+  ALL_ACHIEVEMENTS.forEach(function(ach) {
+    var unlocked = checkAchievementUnlocked(ach);
+    if (unlocked) unlockedCount++;
+    html += '<div class="ach-item ' + (unlocked ? 'unlocked' : 'locked') + '">' +
+      '<div class="ach-icon">' + ach.icon + '</div>' +
+      '<div class="ach-name">' + ach.name + '</div>' +
+      '<div class="ach-desc">' + ach.desc + '</div>' +
+    '</div>';
+  });
+  document.getElementById('achGallery').innerHTML = html;
+  document.getElementById('achTotal').textContent = unlockedCount + ' dari ' + ALL_ACHIEVEMENTS.length + ' achievement diraih';
+}
+
+/* ===== INIT ===== */
+renderOverview();
+renderCorrelations();
+renderDonut();
+renderHeatmap();
+renderSuggestions();
+renderAchievements();
+</script>
+</body>
+</html>

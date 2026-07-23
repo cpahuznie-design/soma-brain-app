@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SOMA">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Aplikasi kesehatan otak pribadi untuk terapi tidur, latihan memory, fokus, catur, dan relaksasi">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<title>SOMA — Bangunkan Kekuatan Otak yang Tidur</title>
+<style>
+/* ===== RESET ===== */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-deep:#0f172a;--bg-mid:#1e3a5f;--bg-card:rgba(30,58,95,.35);
+  --teal:#0d9488;--teal-light:#2dd4bf;--lavender:#a5b4fc;--lavender-light:#c7d2fe;
+  --text:#e2e8f0;--text-muted:#94a3b8;--white:#f8fafc;
+  --glow-teal:0 0 20px rgba(13,148,136,.4);--glow-blue:0 0 25px rgba(165,180,252,.3);
+  --glow-lav:0 0 30px rgba(165,180,252,.2);
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
+  background:radial-gradient(ellipse at top,#1e3a5f 0%,#0f172a 60%);
+  color:var(--text);min-height:100vh;overflow-x:hidden;line-height:1.6;
+}
+#neural-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:.6}
+.main-wrap{position:relative;z-index:1}
+
+/* ===== NAVBAR ===== */
+nav{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:1.2rem 3rem;backdrop-filter:blur(10px);
+  background:rgba(15,23,42,.6);border-bottom:1px solid rgba(165,180,252,.1);
+  position:sticky;top:0;z-index:100;
+}
+.logo{font-size:1.6rem;font-weight:800;letter-spacing:3px;color:var(--lavender);text-shadow:var(--glow-blue)}
+.nav-links{display:flex;align-items:center;gap:2rem}
+.nav-links a{color:var(--text-muted);text-decoration:none;font-size:.95rem;transition:.3s;font-weight:500}
+.nav-links a:hover{color:var(--teal-light)}
+.btn-masuk{
+  background:linear-gradient(135deg,var(--teal),var(--lavender));
+  color:var(--white);padding:.6rem 1.8rem;border-radius:30px;text-decoration:none;
+  font-weight:600;transition:.3s;box-shadow:var(--glow-teal);
+}
+.btn-masuk:hover{transform:translateY(-2px);box-shadow:0 0 30px rgba(45,212,191,.5)}
+
+/* ===== HERO ===== */
+.hero{
+  min-height:90vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:2rem;position:relative;
+}
+.hero h1{
+  font-size:6rem;font-weight:900;letter-spacing:12px;
+  background:linear-gradient(135deg,var(--teal-light),var(--lavender),var(--teal-light));
+  background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 4s linear infinite;
+  filter:drop-shadow(0 0 30px rgba(165,180,252,.5));
+}
+@keyframes shimmer{to{background-position:200% center}}
+.hero .tagline{
+  font-size:1.6rem;margin-top:1rem;color:var(--lavender-light);font-weight:300;
+  text-shadow:0 0 20px rgba(165,180,252,.3);
+}
+.hero .subtitle{font-size:1.05rem;color:var(--text-muted);max-width:600px;margin-top:1.5rem}
+.hero .cta{
+  margin-top:2.5rem;padding:1rem 3rem;
+  background:linear-gradient(135deg,var(--teal),var(--lavender));
+  color:var(--white);border-radius:40px;text-decoration:none;font-size:1.1rem;font-weight:600;
+  box-shadow:var(--glow-teal);transition:.4s;display:inline-block;
+}
+.hero .cta:hover{transform:scale(1.05);box-shadow:0 0 40px rgba(45,212,191,.5)}
+
+/* ===== SECTION ===== */
+.section{padding:5rem 3rem;max-width:1200px;margin:0 auto}
+.section-title{text-align:center;font-size:2.2rem;font-weight:700;margin-bottom:1rem;color:var(--lavender)}
+.section-title .sub{display:block;font-size:.95rem;color:var(--text-muted);font-weight:300;margin-top:.5rem}
+
+/* ===== PILAR ===== */
+.pilar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-top:3rem}
+.pilar-card{
+  background:var(--bg-card);border:1px solid rgba(165,180,252,.15);border-radius:16px;
+  padding:2.5rem 2rem;text-align:center;transition:.4s;backdrop-filter:blur(10px);
+}
+.pilar-card:hover{transform:translateY(-8px);border-color:var(--lavender);box-shadow:var(--glow-lav)}
+.pilar-icon{
+  width:80px;height:80px;margin:0 auto 1.5rem;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:2rem;
+  background:radial-gradient(circle,rgba(13,148,136,.3),rgba(165,180,252,.1));
+  box-shadow:var(--glow-teal);
+}
+.pilar-card h3{font-size:1.2rem;color:var(--teal-light);margin-bottom:.5rem}
+.pilar-card .origin{font-size:.8rem;color:var(--lavender);letter-spacing:1px;margin-bottom:1rem}
+.pilar-card p{font-size:.9rem;color:var(--text-muted)}
+
+/* ===== PROBLEM / SOLUTION ===== */
+.cycle-section{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;margin-top:3rem}
+.cycle-box{
+  background:var(--bg-card);border-radius:16px;padding:2.5rem;text-align:center;
+  border:1px solid rgba(255,100,100,.15);backdrop-filter:blur(10px);
+}
+.cycle-box.good{border-color:rgba(45,212,191,.2)}
+.cycle-box h3{font-size:1.3rem;margin-bottom:2rem}
+.cycle-box.bad h3{color:#f87171}
+.cycle-box.good h3{color:var(--teal-light)}
+.cycle-svg{width:100%;max-width:300px;margin:0 auto}
+.cycle-arrow{font-size:1.5rem;margin:1rem 0;color:var(--text-muted)}
+.cycle-label{font-size:.85rem;color:var(--text-muted);padding:.5rem}
+
+/* ===== FEATURES ===== */
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-top:3rem}
+.feature-card{
+  background:var(--bg-card);border:1px solid rgba(165,180,252,.12);border-radius:16px;
+  padding:2.5rem 2rem;transition:.4s;backdrop-filter:blur(10px);cursor:pointer;
+}
+.feature-card:hover{transform:translateY(-8px);border-color:var(--teal);box-shadow:var(--glow-teal)}
+.feature-icon{width:60px;height:60px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin-bottom:1.5rem;background:rgba(13,148,136,.15)}
+.feature-card h3{font-size:1.1rem;color:var(--lavender-light);margin-bottom:.8rem}
+.feature-card p{font-size:.88rem;color:var(--text-muted)}
+
+/* ===== CTA SECTION ===== */
+.cta-section{text-align:center;padding:5rem 2rem}
+.cta-section h2{font-size:2.5rem;color:var(--lavender);margin-bottom:1rem}
+.cta-section p{color:var(--text-muted);margin-bottom:2rem;font-size:1.05rem}
+.cta-big{
+  display:inline-block;padding:1.2rem 3.5rem;
+  background:linear-gradient(135deg,var(--teal),var(--lavender));color:var(--white);
+  border-radius:40px;text-decoration:none;font-size:1.2rem;font-weight:700;
+  box-shadow:var(--glow-teal);transition:.4s;
+}
+.cta-big:hover{transform:scale(1.05);box-shadow:0 0 50px rgba(45,212,191,.5)}
+
+/* ===== FOOTER ===== */
+footer{
+  text-align:center;padding:2rem;background:rgba(15,23,42,.8);
+  border-top:1px solid rgba(165,180,252,.1);color:var(--text-muted);font-size:.9rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  nav{padding:1rem 1.5rem}
+  .hero h1{font-size:3.5rem;letter-spacing:6px}
+  .hero .tagline{font-size:1.2rem}
+  .section{padding:3rem 1.5rem}
+  .pilar-grid,.features-grid{grid-template-columns:1fr}
+  .cycle-section{grid-template-columns:1fr}
+  .section-title{font-size:1.6rem}
+}
+</style>
+</head>
+<body>
+<canvas id="neural-canvas"></canvas>
+<div class="main-wrap">
+
+<!-- NAVBAR -->
+<nav>
+  <div class="logo">SOMA</div>
+  <div class="nav-links">
+    <a href="#filosofi">Filosofi</a>
+    <a href="#fitur">Fitur</a>
+    <a href="login.html" class="btn-masuk">Masuk</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <h1>SOMA</h1>
+  <p class="tagline">Bangunkan kekuatan otak yang tidur</p>
+  <p class="subtitle">Aplikasi kesehatan otak pribadi untuk terapi tidur, latihan memory, fokus, dan relaksasi</p>
+  <a href="login.html" class="cta">Mulai Bangunkan Otakmu →</a>
+</section>
+
+<!-- PILAR FILOSOFI -->
+<section class="section" id="filosofi">
+  <h2 class="section-title">Tiga Pilar Filosofi SOMA
+    <span class="sub">Satu nama, tiga makna kebijaksanaan</span>
+  </h2>
+  <div class="pilar-grid">
+    <div class="pilar-card">
+      <div class="pilar-icon">🧬</div>
+      <h3>Neurosains</h3>
+      <div class="origin">SOMA = Inti Neuron</div>
+      <p>Dalam neurosains, soma adalah badan sel neuron — pusat kehidupan sel yang menggerakkan setiap pikiran, memori, dan kesadaran.</p>
+    </div>
+    <div class="pilar-card">
+      <div class="pilar-icon">🏛️</div>
+      <h3>Yunani Kuno</h3>
+      <div class="origin">SOMA = Tubuh Utuh</div>
+      <p>Bangsa Yunani menyebut "soma" untuk tubuh sebagai satu kesatuan utuh — pikiran dan raga yang tak terpisahkan.</p>
+    </div>
+    <div class="pilar-card">
+      <div class="pilar-icon">🔮</div>
+      <h3>Weda Veda</h3>
+      <div class="origin">SOMA = Elixir Kehidupan</div>
+      <p>Dalam tradisi Veda, Soma adalah eliksir keabadian — minuman dewata yang memberikan kekuatan, kejernihan, dan kebijaksanaan.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM SECTION -->
+<section class="section">
+  <h2 class="section-title">Siklus yang Memenjarakan Otak
+    <span class="sub">Gangguan tidur? Stress? Sulit fokus? Sering lupa?</span>
+  </h2>
+  <div class="cycle-section">
+    <div class="cycle-box bad">
+      <h3>⚠️ Siklus Buruk</h3>
+      <svg class="cycle-svg" viewBox="0 0 300 300">
+        <defs>
+          <radialGradient id="badGlow"><stop offset="0%" stop-color="#f87171" stop-opacity=".3"/><stop offset="100%" stop-color="#0f172a" stop-opacity="0"/></radialGradient>
+        </defs>
+        <circle cx="150" cy="150" r="130" fill="url(#badGlow)" opacity=".4"/>
+        <!-- 5 nodes: stress(90,60), insomnia(210,80), fog(250,180), malas(180,250), stress(60,210) -->
+        <g stroke="#f87171" stroke-width="1.5" fill="none" opacity=".5">
+          <path d="M90,60 Q150,40 210,80" marker-end="url(#arrRed)"/>
+          <path d="M210,80 Q280,130 250,180" marker-end="url(#arrRed)"/>
+          <path d="M250,180 Q220,240 180,250" marker-end="url(#arrRed)"/>
+          <path d="M180,250 Q100,260 60,210" marker-end="url(#arrRed)"/>
+          <path d="M60,210 Q40,120 90,60" marker-end="url(#arrRed)"/>
+        </g>
+        <defs><marker id="arrRed" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#f87171"/></marker></defs>
+        <g fill="#f87171" font-size="10" text-anchor="middle" font-weight="600">
+          <circle cx="90" cy="60" r="22" fill="#0f172a" stroke="#f87171" stroke-width="2"/><text x="90" y="64">Stress</text>
+          <circle cx="210" cy="80" r="22" fill="#0f172a" stroke="#f87171" stroke-width="2"/><text x="210" y="84">Insomnia</text>
+          <circle cx="250" cy="180" r="22" fill="#0f172a" stroke="#f87171" stroke-width="2"/><text x="250" y="184">Brain Fog</text>
+          <circle cx="180" cy="250" r="22" fill="#0f172a" stroke="#f87171" stroke-width="2"/><text x="180" y="254">Malas</text>
+        </g>
+      </svg>
+      <p style="color:#f87171;font-size:.9rem;margin-top:1rem">Stress → Insomnia → Brain Fog → Malas → Stress</p>
+    </div>
+    <div style="text-align:center;padding:2rem">
+      <h3 style="font-size:1.8rem;color:var(--lavender);margin-bottom:1rem">Soma memutus siklus buruk</h3>
+      <p style="color:var(--text-muted)">Bukan sekadar mengatasi gejala — Soma membangun fondasi otak yang sehat dari akar: tidur berkualitas, pikiran tenang, dan latihan kognitif harian.</p>
+    </div>
+    <div class="cycle-box good">
+      <h3>✨ Siklus Baik</h3>
+      <svg class="cycle-svg" viewBox="0 0 300 300">
+        <defs>
+          <radialGradient id="goodGlow"><stop offset="0%" stop-color="#2dd4bf" stop-opacity=".3"/><stop offset="100%" stop-color="#0f172a" stop-opacity="0"/></radialGradient>
+        </defs>
+        <circle cx="150" cy="150" r="130" fill="url(#goodGlow)" opacity=".4"/>
+        <g stroke="#2dd4bf" stroke-width="1.5" fill="none" opacity=".5">
+          <path d="M90,60 Q150,40 210,80" marker-end="url(#arrGrn)"/>
+          <path d="M210,80 Q280,130 250,180" marker-end="url(#arrGrn)"/>
+          <path d="M250,180 Q220,240 180,250" marker-end="url(#arrGrn)"/>
+          <path d="M180,250 Q100,260 60,210" marker-end="url(#arrGrn)"/>
+          <path d="M60,210 Q40,120 90,60" marker-end="url(#arrGrn)"/>
+        </g>
+        <defs><marker id="arrGrn" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#2dd4bf"/></marker></defs>
+        <g fill="#2dd4bf" font-size="9" text-anchor="middle" font-weight="600">
+          <circle cx="90" cy="60" r="24" fill="#0f172a" stroke="#2dd4bf" stroke-width="2"/><text x="90" y="64">Tidur Nyenyak</text>
+          <circle cx="210" cy="80" r="24" fill="#0f172a" stroke="#2dd4bf" stroke-width="2"/><text x="210" y="84">Pikiran Tenang</text>
+          <circle cx="250" cy="180" r="22" fill="#0f172a" stroke="#2dd4bf" stroke-width="2"/><text x="250" y="184">Fokus Tajam</text>
+          <circle cx="180" cy="250" r="22" fill="#0f172a" stroke="#2dd4bf" stroke-width="2"/><text x="180" y="254">Otak Aktif</text>
+        </g>
+      </svg>
+      <p style="color:var(--teal-light);font-size:.9rem;margin-top:1rem">Tidur Nyenyak → Pikiran Tenang → Fokus Tajam → Otak Aktif → Memory Kuat</p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="fitur">
+  <h2 class="section-title">Enam Terapi untuk Otak Anda
+    <span class="sub">Setiap fitur dirancang berdasarkan neurosains terapan</span>
+  </h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">😴</div>
+      <h3>Sleep Therapy</h3>
+      <p>Suara relaksasi, gelombang otak, dan panduan napas untuk tidur nyenyak dan bangun segar.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌊</div>
+      <h3>Stress Relief</h3>
+      <p>Teknik breathing, body scan, dan meditasi terpandu untuk menenangkan sistem saraf.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎯</div>
+      <h3>Focus Therapy</h3>
+      <p>Latihan fokus berbasis pomodoro dengan suara ambient untuk konsentrasi maksimal.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧩</div>
+      <h3>Memory Trainer</h3>
+      <p>Permainan kognitif: word recall, pattern matching, number sequence untuk memperkuat memori.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📚</div>
+      <h3>Learning Assistant</h3>
+      <p>Teknik mnemonik, spaced repetition, dan active recall untuk menghafal efektif.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Brain Analytics</h3>
+      <p>Pelacakan skor otak harian, tren mingguan, dan insight untuk optimasi kesehatan kognitif.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Otak Anda Layak Dilatih</h2>
+  <p>Mulai hari ini. Bangunkan kekuatan yang tidur di dalam diri Anda.</p>
+  <a href="login.html" class="cta-big">Mulai Bangunkan Otakmu →</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  Soma — Bangunkan kekuatan otak yang tidur • Dibuat dengan ❤️ untuk Pak Husni
+</footer>
+
+</div>
+
+<script>
+/* ===== NEURAL NETWORK ANIMATION ===== */
+(function(){
+  const canvas=document.getElementById('neural-canvas');
+  const ctx=canvas.getContext('2d');
+  let W,H,particles;
+  function resize(){
+    W=canvas.width=window.innerWidth;
+    H=canvas.height=window.innerHeight;
+    initParticles();
+  }
+  function initParticles(){
+    const count=Math.min(80,Math.floor(W*H/18000));
+    particles=[];
+    for(let i=0;i<count;i++){
+      particles.push({
+        x:Math.random()*W,y:Math.random()*H,
+        vx:(Math.random()-0.5)*0.4,vy:(Math.random()-0.5)*0.4,
+        r:Math.random()*2+1
+      });
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    for(let i=0;i<particles.length;i++){
+      const p=particles[i];
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>W)p.vx*=-1;
+      if(p.y<0||p.y>H)p.vy*=-1;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(165,180,252,0.6)';
+      ctx.fill();
+      for(let j=i+1;j<particles.length;j++){
+        const q=particles[j];
+        const dx=p.x-q.x,dy=p.y-q.y;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<140){
+          ctx.beginPath();
+          ctx.moveTo(p.x,p.y);
+          ctx.lineTo(q.x,q.y);
+          ctx.strokeStyle='rgba(45,212,191,'+(1-dist/140)*0.2+')';
+          ctx.lineWidth=0.5;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',resize);
+  resize();
+  draw();
+})();
+
+// PWA Service Worker Registration
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    console.log('SOMA PWA: Service Worker registered');
+  }).catch(err => console.log('SW registration failed:', err));
+}
+
+// PWA Install Prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
+</script>
+</body>
+</html>

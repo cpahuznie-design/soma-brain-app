@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOMA — Memory Trainer</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-deep:#0f172a;--bg-mid:#1e3a5f;--bg-card:rgba(30,41,59,.6);
+  --card:#1e293b;--teal:#0d9488;--teal-light:#2dd4bf;--soft-blue:#38bdf8;
+  --lavender:#a5b4fc;--lavender-light:#c7d2fe;--purple:#8b5cf6;--purple-light:#c4b5fd;
+  --text:#e2e8f0;--text-muted:#94a3b8;--white:#f8fafc;
+  --glow-teal:0 0 20px rgba(13,148,136,.4);--glow-lav:0 0 30px rgba(165,180,252,.2);
+  --glow-purple:0 0 20px rgba(139,92,246,.3);
+}
+body{
+  font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
+  background:radial-gradient(ellipse at top,#1e3a5f 0%,#0f172a 60%);
+  color:var(--text);min-height:100vh;overflow-x:hidden;
+}
+#neural-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:.4}
+.main-wrap{position:relative;z-index:1}
+
+/* NAVBAR */
+nav{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;
+  padding:.8rem 2rem;backdrop-filter:blur(10px);
+  background:rgba(15,23,42,.7);border-bottom:1px solid rgba(165,180,252,.1);
+  position:sticky;top:0;z-index:100;
+}
+.nav-logo{font-size:1.4rem;font-weight:800;letter-spacing:3px;color:var(--lavender);text-decoration:none;text-shadow:0 0 20px rgba(165,180,252,.3)}
+.nav-menu{display:flex;gap:.3rem;flex-wrap:wrap;align-items:center}
+.nav-menu a{
+  color:var(--text-muted);text-decoration:none;font-size:.85rem;padding:.5rem .8rem;
+  border-radius:8px;transition:.3s;font-weight:500;
+}
+.nav-menu a:hover,.nav-menu a.active{color:var(--teal-light);background:rgba(13,148,136,.1)}
+.nav-menu a.active{color:var(--teal-light);font-weight:700}
+.btn-logout{
+  color:#fca5a5 !important;border:1px solid rgba(239,68,68,.2);border-radius:8px;
+}
+
+/* HEADER */
+.header{text-align:center;padding:2.5rem 2rem 1.5rem}
+.header h1{font-size:3rem;font-weight:900;letter-spacing:8px;color:var(--lavender);text-shadow:0 0 30px rgba(165,180,252,.4)}
+.header .tagline{font-size:1rem;color:var(--text-muted);margin-top:.5rem}
+.header .datetime{font-size:.85rem;color:var(--teal-light);margin-top:.8rem;letter-spacing:1px}
+
+/* SECTIONS */
+.section{max-width:1100px;margin:0 auto;padding:2rem 1.5rem}
+.section-title{font-size:1.3rem;color:var(--lavender);margin-bottom:1.5rem;font-weight:600}
+
+/* CARD */
+.card{
+  background:var(--bg-card);border:1px solid rgba(165,180,252,.15);border-radius:16px;
+  padding:2rem;backdrop-filter:blur(10px);transition:.3s;
+}
+.card:hover{border-color:rgba(13,148,136,.3)}
+
+/* GAME GRID */
+.game-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem;margin-bottom:2rem}
+.game-card{
+  background:var(--bg-card);border:1px solid rgba(165,180,252,.15);border-radius:16px;
+  padding:1.8rem;backdrop-filter:blur(10px);transition:.3s;cursor:pointer;
+}
+.game-card:hover{border-color:var(--teal);box-shadow:var(--glow-teal);transform:translateY(-2px)}
+.game-card.active{border-color:var(--purple);box-shadow:var(--glow-purple)}
+.game-header{display:flex;align-items:center;gap:1rem;margin-bottom:1rem}
+.game-icon{font-size:2rem}
+.game-title{font-size:1.1rem;font-weight:700;color:var(--lavender-light)}
+.game-desc{font-size:.85rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.5}
+.game-best{font-size:.8rem;color:var(--teal-light);margin-bottom:.8rem}
+.game-best span{font-weight:700;font-size:1rem}
+.btn{
+  display:inline-block;padding:.6rem 1.5rem;border:none;border-radius:10px;
+  font-size:.9rem;font-weight:600;cursor:pointer;transition:.3s;text-decoration:none;
+}
+.btn-teal{background:linear-gradient(135deg,var(--teal),var(--teal-light));color:var(--white)}
+.btn-teal:hover{box-shadow:var(--glow-teal);transform:translateY(-1px)}
+.btn-purple{background:linear-gradient(135deg,var(--purple),var(--purple-light));color:var(--white)}
+.btn-purple:hover{box-shadow:var(--glow-purple);transform:translateY(-1px)}
+.btn-ghost{background:transparent;border:1px solid var(--lavender);color:var(--lavender)}
+.btn-ghost:hover{background:rgba(165,180,252,.1)}
+.btn-sm{padding:.4rem 1rem;font-size:.8rem}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* GAME AREA */
+.game-area{
+  background:var(--bg-card);border:1px solid rgba(139,92,246,.2);border-radius:16px;
+  padding:2.5rem;backdrop-filter:blur(10px);margin-bottom:2rem;display:none;
+}
+.game-area.show{display:block;animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.game-area-title{font-size:1.3rem;color:var(--purple-light);margin-bottom:.5rem;font-weight:700}
+.game-instruction{font-size:.9rem;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.6}
+
+/* LEVEL SELECTOR */
+.level-selector{display:flex;gap:.8rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.level-btn{
+  padding:.5rem 1.2rem;border:1px solid var(--lavender);border-radius:10px;
+  background:transparent;color:var(--lavender);cursor:pointer;transition:.3s;
+  font-size:.85rem;font-weight:600;
+}
+.level-btn:hover{background:rgba(165,180,252,.1)}
+.level-btn.selected{background:var(--purple);border-color:var(--purple);color:var(--white)}
+
+/* WORD RECALL */
+.word-display-area{text-align:center;min-height:200px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.word-list{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;max-width:600px}
+.word-item{
+  font-size:1.5rem;font-weight:700;color:var(--lavender-light);
+  padding:.6rem 1.2rem;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);
+  border-radius:12px;opacity:0;animation:wordFadeIn .5s forwards;
+}
+@keyframes wordFadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.countdown-timer{
+  font-size:3rem;font-weight:900;color:var(--teal-light);
+  text-shadow:0 0 25px rgba(45,212,191,.4);margin-bottom:1rem;
+}
+.recall-input{
+  width:100%;max-width:500px;padding:.8rem 1rem;font-size:1rem;
+  background:rgba(15,23,42,.5);border:1px solid var(--lavender);border-radius:10px;
+  color:var(--white);margin-bottom:1rem;
+}
+.recall-input:focus{outline:none;border-color:var(--teal);box-shadow:var(--glow-teal)}
+.result-box{text-align:center;padding:2rem}
+.result-score{font-size:2.5rem;font-weight:900;color:var(--teal-light);margin:.5rem 0}
+.result-label{font-size:1rem;color:var(--text-muted)}
+
+/* SEQUENCE GRID */
+.seq-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;max-width:300px;margin:0 auto}
+.seq-cell{
+  aspect-ratio:1;border-radius:14px;cursor:pointer;transition:.3s;
+  background:rgba(30,41,59,.6);border:2px solid rgba(165,180,252,.15);
+}
+.seq-cell:hover{border-color:rgba(165,180,252,.4)}
+.seq-cell.lit{
+  background:var(--teal);border-color:var(--teal-light);
+  box-shadow:0 0 25px rgba(13,148,136,.6),0 0 50px rgba(45,212,191,.3);
+  transform:scale(1.05);
+}
+.seq-cell.user-click{
+  background:var(--purple);border-color:var(--purple-light);
+  box-shadow:0 0 20px rgba(139,92,246,.5);transform:scale(1.05);
+}
+.seq-status{text-align:center;margin:1rem 0;font-size:1rem;color:var(--lavender-light);min-height:1.5rem}
+
+/* PATTERN MATCHING */
+.pattern-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;max-width:400px;margin:0 auto}
+.pattern-card{
+  aspect-ratio:1;border-radius:14px;cursor:pointer;transition:.4s;
+  perspective:600px;position:relative;
+}
+.pattern-card-inner{
+  width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d;
+  position:relative;
+}
+.pattern-card.flipped .pattern-card-inner{transform:rotateY(180deg)}
+.pattern-card-front,.pattern-card-back{
+  position:absolute;width:100%;height:100%;backface-visibility:hidden;
+  border-radius:14px;display:flex;align-items:center;justify-content:center;
+  font-size:2rem;
+}
+.pattern-card-front{
+  background:rgba(30,41,59,.8);border:2px solid rgba(165,180,252,.15);
+}
+.pattern-card-front::after{content:'?';font-size:2rem;color:var(--text-muted);opacity:.4}
+.pattern-card-back{
+  background:rgba(139,92,246,.15);border:2px solid var(--purple);
+  transform:rotateY(180deg);box-shadow:var(--glow-purple);
+}
+.pattern-card.matched .pattern-card-back{
+  background:rgba(13,148,136,.2);border-color:var(--teal-light);
+  box-shadow:var(--glow-teal);
+}
+.pattern-info{display:flex;justify-content:center;gap:2rem;margin:1rem 0;font-size:.9rem;color:var(--text-muted)}
+.pattern-info span{color:var(--lavender-light);font-weight:600}
+
+/* NUMBER MEMORY */
+.number-display{
+  font-size:3.5rem;font-weight:900;color:var(--soft-blue);
+  text-shadow:0 0 30px rgba(56,189,248,.4);text-align:center;
+  letter-spacing:.5rem;padding:2rem;min-height:120px;
+  display:flex;align-items:center;justify-content:center;
+}
+.number-display.hide{opacity:0;transition:opacity .3s}
+
+/* FLASHCARD */
+.flashcard-area{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+.flashcard-form{background:rgba(15,23,42,.4);border:1px solid rgba(165,180,252,.12);border-radius:14px;padding:1.5rem}
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:.85rem;color:var(--text-muted);margin-bottom:.4rem}
+.form-group input,.form-group select,.form-group textarea{
+  width:100%;padding:.6rem .8rem;background:rgba(15,23,42,.5);
+  border:1px solid var(--lavender);border-radius:8px;color:var(--white);font-size:.9rem;
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+  outline:none;border-color:var(--teal);box-shadow:var(--glow-teal)
+}
+.form-group textarea{resize:vertical;min-height:60px}
+.flashcard-display{text-align:center}
+.flashcard-3d{
+  width:100%;max-width:350px;height:220px;margin:0 auto 1.5rem;
+  perspective:1000px;cursor:pointer;
+}
+.flashcard-inner{
+  width:100%;height:100%;transition:transform .6s;transform-style:preserve-3d;
+  position:relative;
+}
+.flashcard-3d.flipped .flashcard-inner{transform:rotateY(180deg)}
+.flashcard-front,.flashcard-back{
+  position:absolute;width:100%;height:100%;backface-visibility:hidden;
+  border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:1.5rem;
+}
+.flashcard-front{
+  background:linear-gradient(135deg,rgba(139,92,246,.15),rgba(30,41,59,.8));
+  border:2px solid var(--purple);
+}
+.flashcard-back{
+  background:linear-gradient(135deg,rgba(13,148,136,.15),rgba(30,41,59,.8));
+  border:2px solid var(--teal);transform:rotateY(180deg);
+}
+.flashcard-front .fc-text{font-size:1.3rem;font-weight:700;color:var(--purple-light);text-align:center}
+.flashcard-back .fc-text{font-size:1.1rem;color:var(--teal-light);text-align:center}
+.flashcard-cat{font-size:.75rem;color:var(--text-muted);margin-top:.8rem;letter-spacing:1px}
+.flashcard-hint{font-size:.8rem;color:var(--text-muted);margin-bottom:1rem}
+.flashcard-controls{display:flex;gap:1rem;justify-content:center}
+.flashcard-empty{text-align:center;padding:3rem 1rem;color:var(--text-muted)}
+.flashcard-list{margin-top:1.5rem;max-height:300px;overflow-y:auto}
+.fc-list-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:.6rem 1rem;background:rgba(15,23,42,.3);border:1px solid rgba(165,180,252,.08);
+  border-radius:8px;margin-bottom:.5rem;font-size:.85rem;
+}
+.fc-list-item .fc-front{color:var(--lavender-light)}
+.fc-list-item .fc-cat{font-size:.75rem;color:var(--teal-light);background:rgba(13,148,136,.1);padding:.2rem .5rem;border-radius:4px}
+.fc-list-item .fc-del{color:#fca5a5;cursor:pointer;font-size:.8rem;padding:.2rem .4rem;border-radius:4px;transition:.3s}
+.fc-list-item .fc-del:hover{background:rgba(239,68,68,.15)}
+
+/* SPACED REPETITION */
+.sr-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:1.5rem}
+.sr-stats{display:flex;flex-direction:column;gap:1rem}
+.sr-stat-box{
+  background:rgba(15,23,42,.4);border:1px solid rgba(165,180,252,.12);border-radius:12px;
+  padding:1.2rem;text-align:center;
+}
+.sr-stat-num{font-size:2rem;font-weight:900;color:var(--teal-light)}
+.sr-stat-lbl{font-size:.8rem;color:var(--text-muted);margin-top:.3rem}
+.sr-calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:.3rem}
+.sr-cal-day{
+  aspect-ratio:1;border-radius:8px;background:rgba(15,23,42,.4);
+  border:1px solid rgba(165,180,252,.08);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;font-size:.7rem;color:var(--text-muted);
+  position:relative;
+}
+.sr-cal-day.today{border-color:var(--teal);box-shadow:0 0 10px rgba(13,148,136,.3)}
+.sr-cal-day .day-num{font-size:.85rem;font-weight:700;color:var(--lavender)}
+.sr-cal-day .day-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);margin-top:2px}
+.sr-cal-day .day-dot.due{background:var(--purple)}
+.sr-cal-day .day-dot.done{background:var(--teal-light)}
+.sr-cal-header{text-align:center;font-size:.85rem;color:var(--text-muted);margin-bottom:1rem;letter-spacing:1px}
+.sr-streak{display:flex;align-items:center;justify-content:center;gap:.5rem;margin:1rem 0}
+.streak-flame{font-size:1.5rem}
+.streak-num{font-size:1.8rem;font-weight:900;color:#fbbf24}
+.streak-label{font-size:.85rem;color:var(--text-muted)}
+.sr-review-list{margin-top:1rem}
+.sr-review-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:.8rem 1rem;background:rgba(15,23,42,.3);border:1px solid rgba(139,92,246,.15);
+  border-radius:10px;margin-bottom:.5rem;
+}
+.sr-review-item .sr-front{font-size:.9rem;color:var(--lavender-light)}
+.sr-review-item .sr-stage{font-size:.75rem;color:var(--purple-light);background:rgba(139,92,246,.1);padding:.2rem .5rem;border-radius:4px}
+
+/* MEMORY SCORE */
+.mem-score-box{display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:center}
+.mem-score-circle{text-align:center}
+.mem-score-circle svg{width:100%;max-width:200px}
+.mem-score-num{font-size:3rem;font-weight:900;color:var(--teal-light);text-shadow:0 0 25px rgba(45,212,191,.4)}
+.mem-score-label{font-size:.9rem;color:var(--text-muted);margin-top:.3rem}
+.mem-breakdown{display:flex;flex-direction:column;gap:1rem}
+.mem-bar-item{display:flex;flex-direction:column;gap:.4rem}
+.mem-bar-label{display:flex;justify-content:space-between;font-size:.85rem}
+.mem-bar-label .label{color:var(--text-muted)}
+.mem-bar-label .value{color:var(--lavender-light);font-weight:600}
+.mem-bar-track{height:10px;background:rgba(15,23,42,.5);border-radius:5px;overflow:hidden}
+.mem-bar-fill{height:100%;border-radius:5px;transition:width 1s ease-out}
+.mem-bar-fill.word{background:linear-gradient(90deg,var(--purple),var(--purple-light))}
+.mem-bar-fill.seq{background:linear-gradient(90deg,var(--teal),var(--teal-light))}
+.mem-bar-fill.pattern{background:linear-gradient(90deg,var(--soft-blue),#7dd3fc)}
+.mem-bar-fill.number{background:linear-gradient(90deg,var(--lavender),var(--lavender-light))}
+.mem-bar-fill.flash{background:linear-gradient(90deg,#fbbf24,#fde68a)}
+
+/* ACHIEVEMENTS */
+.achievements{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-top:1.5rem}
+.achievement{
+  text-align:center;padding:1.2rem;border-radius:14px;
+  background:rgba(15,23,42,.4);border:1px solid rgba(165,180,252,.1);transition:.3s;
+}
+.achievement.unlocked{border-color:var(--teal);box-shadow:var(--glow-teal)}
+.achievement.locked{opacity:.4}
+.ach-icon{font-size:2rem;margin-bottom:.5rem}
+.ach-name{font-size:.8rem;font-weight:600;color:var(--lavender-light)}
+.ach-desc{font-size:.7rem;color:var(--text-muted);margin-top:.3rem}
+
+/* WEEKLY CHART */
+.chart-box{background:var(--bg-card);border:1px solid rgba(165,180,252,.15);border-radius:16px;padding:2rem;backdrop-filter:blur(10px)}
+.chart-box svg{width:100%;max-width:700px;display:block;margin:0 auto}
+.chart-trend{text-align:center;margin-top:1rem;font-size:.9rem}
+
+/* TIPS */
+.tip-box{
+  background:var(--bg-card);border:1px solid rgba(139,92,246,.2);border-radius:16px;
+  padding:2.5rem;text-align:center;backdrop-filter:blur(10px);position:relative;
+  box-shadow:var(--glow-purple);
+}
+.tip-icon{font-size:2rem;margin-bottom:1rem;display:block}
+.tip-text{font-size:1.1rem;color:var(--purple-light);font-style:italic;max-width:600px;margin:0 auto;line-height:1.6}
+
+/* FOOTER */
+footer{
+  text-align:center;padding:2rem;background:rgba(15,23,42,.8);
+  border-top:1px solid rgba(165,180,252,.1);color:var(--text-muted);font-size:.9rem;
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .game-grid{grid-template-columns:1fr}
+  .flashcard-area{grid-template-columns:1fr}
+  .sr-grid{grid-template-columns:1fr}
+  .mem-score-box{grid-template-columns:1fr;text-align:center}
+  .achievements{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:600px){
+  nav{padding:.8rem 1rem}
+  .nav-menu{gap:0}
+  .nav-menu a{font-size:.75rem;padding:.4rem .5rem}
+  .header h1{font-size:2rem;letter-spacing:4px}
+  .section{padding:1.5rem 1rem}
+  .achievements{grid-template-columns:repeat(2,1fr)}
+  .pattern-grid{max-width:320px}
+}
+</style>
+</head>
+<body>
+<canvas id="neural-canvas"></canvas>
+<div class="main-wrap">
+
+<!-- NAVBAR -->
+<nav>
+  <a href="dashboard.html" class="nav-logo">SOMA</a>
+  <div class="nav-menu">
+    <a href="dashboard.html">🧠 Dashboard</a>
+    <a href="sleep.html">😴 Tidur</a>
+    <a href="relax.html">🌊 Relaksasi</a>
+    <a href="game.html" class="active">🎮 Game</a>
+    <a href="learn.html">📖 Belajar</a>
+    <a href="settings.html">⚙️ Settings</a>
+    <a href="#" id="logoutBtn" class="btn-logout">Keluar</a>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>MEMORY</h1>
+  <p class="tagline">Latih ingatan, bangunkan kekuatan kognitif</p>
+  <p class="datetime" id="liveDateTime"></p>
+</div>
+
+<!-- 1. MEMORY GAMES -->
+<div class="section">
+  <h2 class="section-title">🧩 Memory Games — Latih Ingatan Anda</h2>
+  <div class="game-grid">
+    <div class="game-card" id="gameCard1" onclick="selectGame(1)">
+      <div class="game-header">
+        <span class="game-icon">📝</span>
+        <span class="game-title">Word Recall</span>
+      </div>
+      <p class="game-desc">Hafal kata yang muncul, lalu ketik ulang dari ingatan. Latih memory jangka pendek.</p>
+      <div class="game-best">Best Score: <span id="best1">0</span></div>
+      <button class="btn btn-teal btn-sm" onclick="selectGame(1);event.stopPropagation()">Mulai</button>
+    </div>
+    <div class="game-card" id="gameCard2" onclick="selectGame(2)">
+      <div class="game-header">
+        <span class="game-icon">🔢</span>
+        <span class="game-title">Sequence Memory</span>
+      </div>
+      <p class="game-desc">Ingat urutan kotak yang menyala, lalu klik sesuai urutan. Tiap level bertambah langkah.</p>
+      <div class="game-best">Best Level: <span id="best2">0</span></div>
+      <button class="btn btn-teal btn-sm" onclick="selectGame(2);event.stopPropagation()">Mulai</button>
+    </div>
+    <div class="game-card" id="gameCard3" onclick="selectGame(3)">
+      <div class="game-header">
+        <span class="game-icon">🃏</span>
+        <span class="game-title">Pattern Matching</span>
+      </div>
+      <p class="game-desc">Cocokkan pasang kartu yang sama. Semakin sedikit langkah & cepat = skor tinggi.</p>
+      <div class="game-best">Best Score: <span id="best3">0</span></div>
+      <button class="btn btn-teal btn-sm" onclick="selectGame(3);event.stopPropagation()">Mulai</button>
+    </div>
+    <div class="game-card" id="gameCard4" onclick="selectGame(4)">
+      <div class="game-header">
+        <span class="game-icon">🔢</span>
+        <span class="game-title">Number Memory</span>
+      </div>
+      <p class="game-desc">Hafal angka acak yang muncul sebentar, lalu ketik ulang. Tiap level bertambah digit.</p>
+      <div class="game-best">Best Level: <span id="best4">0</span></div>
+      <button class="btn btn-teal btn-sm" onclick="selectGame(4);event.stopPropagation()">Mulai</button>
+    </div>
+  </div>
+
+  <!-- GAME 1: WORD RECALL -->
+  <div class="game-area" id="gameArea1">
+    <h3 class="game-area-title">📝 Word Recall — Hafal Kata</h3>
+    <p class="game-instruction">Pilih level, lalu tekan Mulai. Kata akan muncul selama 10 detik. Setelah hilang, ketik kata yang Anda ingat (pisahkan dengan koma).</p>
+    <div class="level-selector">
+      <button class="level-btn selected" data-game="1" data-level="easy" onclick="setLevel(1,'easy')">Easy (5 kata)</button>
+      <button class="level-btn" data-game="1" data-level="medium" onclick="setLevel(1,'medium')">Medium (8 kata)</button>
+      <button class="level-btn" data-game="1" data-level="hard" onclick="setLevel(1,'hard')">Hard (12 kata)</button>
+    </div>
+    <div id="wordRecallArea">
+      <div class="word-display-area" id="wordDisplay">
+        <button class="btn btn-purple" onclick="startWordRecall()">Mulai Game</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME 2: SEQUENCE MEMORY -->
+  <div class="game-area" id="gameArea2">
+    <h3 class="game-area-title">🔢 Sequence Memory — Hafal Urutan</h3>
+    <p class="game-instruction">Awasi kotak yang menyala satu per satu. Setelah selesai, klik kotak sesuai urutan yang Anda lihat. Tiap level bertambah 1 langkah.</p>
+    <div class="seq-status" id="seqStatus">Tekan Mulai untuk memulai</div>
+    <div class="seq-grid" id="seqGrid"></div>
+    <div style="text-align:center;margin-top:1.5rem">
+      <button class="btn btn-purple" id="seqStartBtn" onclick="startSequence()">Mulai Game</button>
+    </div>
+  </div>
+
+  <!-- GAME 3: PATTERN MATCHING -->
+  <div class="game-area" id="gameArea3">
+    <h3 class="game-area-title">🃏 Pattern Matching — Cocokkan Pola</h3>
+    <p class="game-instruction">Flip 2 kartu sekaligus. Kalau gambar sama, kartu tetap terbuka. Kalau beda, kartu tertutup lagi. Cocokkan semua pasangan!</p>
+    <div class="pattern-info">
+      <div>Langkah: <span id="patternMoves">0</span></div>
+      <div>Waktu: <span id="patternTime">0s</span></div>
+      <div>Pasangan: <span id="patternPairs">0</span>/8</div>
+    </div>
+    <div class="pattern-grid" id="patternGrid"></div>
+    <div style="text-align:center;margin-top:1.5rem">
+      <button class="btn btn-purple" id="patternStartBtn" onclick="startPattern()">Mulai Game</button>
+    </div>
+  </div>
+
+  <!-- GAME 4: NUMBER MEMORY -->
+  <div class="game-area" id="gameArea4">
+    <h3 class="game-area-title">🔢 Number Memory — Hafal Angka</h3>
+    <p class="game-instruction">Angka acak akan muncul selama 5 detik. Setelah hilang, ketik angka yang Anda ingat. Tiap level bertambah 1 digit.</p>
+    <div class="seq-status" id="numStatus">Level: 1 (3 digit)</div>
+    <div class="number-display" id="numDisplay">—</div>
+    <div id="numInputArea" style="display:none;text-align:center">
+      <input type="text" class="recall-input" id="numInput" placeholder="Ketik angka..." style="max-width:300px;margin:0 auto 1rem;display:block">
+      <button class="btn btn-teal" onclick="checkNumber()">Cek Jawaban</button>
+    </div>
+    <div style="text-align:center;margin-top:1.5rem" id="numStartArea">
+      <button class="btn btn-purple" id="numStartBtn" onclick="startNumberMemory()">Mulai Game</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. FLASHCARD DIGITAL -->
+<div class="section">
+  <h2 class="section-title">📖 Flashcard Digital — Buat & Hafal</h2>
+  <div class="flashcard-area">
+    <div class="flashcard-form">
+      <h3 style="color:var(--purple-light);margin-bottom:1rem;font-size:1rem">➕ Buat Flashcard Baru</h3>
+      <div class="form-group">
+        <label>Depan (Pertanyaan/Kata)</label>
+        <input type="text" id="fcFront" placeholder="cth: Al-Fatihah artinya...">
+      </div>
+      <div class="form-group">
+        <label>Belakang (Jawaban/Arti)</label>
+        <textarea id="fcBack" placeholder="cth: Pembukaan (surat pertama Al-Quran)"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Kategori</label>
+        <select id="fcCategory">
+          <option value="Quran">Quran</option>
+          <option value="Vocabulary">Vocabulary</option>
+          <option value="Angka">Angka</option>
+          <option value="Nama">Nama</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
+      </div>
+      <button class="btn btn-purple" onclick="addFlashcard()">Tambah Flashcard</button>
+      <div style="margin-top:.8rem;font-size:.8rem;color:var(--text-muted)">Total: <span id="fcTotal">0</span> kartu • Hafal: <span id="fcMemorized">0</span></div>
+    </div>
+    <div class="flashcard-display">
+      <div id="flashcardShow">
+        <div class="flashcard-empty" id="fcEmpty">Belum ada flashcard.<br>Buat kartu pertama Anda!</div>
+        <div id="fcCardArea" style="display:none">
+          <div class="flashcard-3d" id="flashcard3d" onclick="flipFlashcard()">
+            <div class="flashcard-inner">
+              <div class="flashcard-front">
+                <div class="fc-text" id="fcShowFront">—</div>
+                <div class="flashcard-cat" id="fcShowCat">—</div>
+              </div>
+              <div class="flashcard-back">
+                <div class="fc-text" id="fcShowBack">—</div>
+              </div>
+            </div>
+          </div>
+          <p class="flashcard-hint">Klik kartu untuk flip • Kartu <span id="fcIndex">1</span> dari <span id="fcTotal2">0</span></p>
+          <div class="flashcard-controls">
+            <button class="btn btn-teal" onclick="reviewFlashcard(true)">✓ Tahu</button>
+            <button class="btn btn-ghost" onclick="reviewFlashcard(false)">✗ Tidak Tahu</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="flashcard-list" id="fcList"></div>
+</div>
+
+<!-- 3. SPACED REPETITION -->
+<div class="section">
+  <h2 class="section-title">📅 Spaced Repetition — Jadwal Review</h2>
+  <div class="card">
+    <div class="sr-grid">
+      <div>
+        <div class="sr-cal-header" id="srCalMonth">Jadwal Review 7 Hari</div>
+        <div class="sr-calendar" id="srCalendar"></div>
+        <div class="sr-streak">
+          <span class="streak-flame">🔥</span>
+          <span class="streak-num" id="srStreak">0</span>
+          <span class="streak-label">hari berturut-turut</span>
+        </div>
+      </div>
+      <div class="sr-stats">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="sr-stat-box">
+            <div class="sr-stat-num" id="srDueToday">0</div>
+            <div class="sr-stat-lbl">Review Hari Ini</div>
+          </div>
+          <div class="sr-stat-box">
+            <div class="sr-stat-num" id="srPending">0</div>
+            <div class="sr-stat-lbl">Pending</div>
+          </div>
+        </div>
+        <div>
+          <h4 style="color:var(--purple-light);margin-bottom:.8rem;font-size:.95rem">📋 Kartu Due Hari Ini</h4>
+          <div class="sr-review-list" id="srReviewList">
+            <div style="text-align:center;color:var(--text-muted);font-size:.85rem;padding:1rem">Tidak ada kartu untuk diulang hari ini.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. MEMORY SCORE -->
+<div class="section">
+  <h2 class="section-title">🏆 Memory Score — Gabungan Latihan</h2>
+  <div class="card">
+    <div class="mem-score-box">
+      <div class="mem-score-circle">
+        <svg viewBox="0 0 200 200">
+          <defs>
+            <linearGradient id="memGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#0d9488"/>
+            </linearGradient>
+          </defs>
+          <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(165,180,252,.1)" stroke-width="10"/>
+          <circle cx="100" cy="100" r="85" fill="none" stroke="url(#memGrad)" stroke-width="10"
+            stroke-linecap="round" id="memScoreRing" stroke-dasharray="534" stroke-dashoffset="534"
+            transform="rotate(-90 100 100)" style="transition:stroke-dashoffset 1.5s ease"/>
+          <text x="100" y="105" text-anchor="middle" fill="#2dd4bf" font-size="40" font-weight="900" id="memScoreText">0</text>
+        </svg>
+        <div class="mem-score-num" id="memScoreNum">0</div>
+        <div class="mem-score-label">/ 100 Memory Score</div>
+      </div>
+      <div class="mem-breakdown">
+        <div class="mem-bar-item">
+          <div class="mem-bar-label"><span class="label">📝 Word Recall</span><span class="value" id="memWord">0</span></div>
+          <div class="mem-bar-track"><div class="mem-bar-fill word" id="memWordBar" style="width:0%"></div></div>
+        </div>
+        <div class="mem-bar-item">
+          <div class="mem-bar-label"><span class="label">🔢 Sequence</span><span class="value" id="memSeq">0</span></div>
+          <div class="mem-bar-track"><div class="mem-bar-fill seq" id="memSeqBar" style="width:0%"></div></div>
+        </div>
+        <div class="mem-bar-item">
+          <div class="mem-bar-label"><span class="label">🃏 Pattern</span><span class="value" id="memPattern">0</span></div>
+          <div class="mem-bar-track"><div class="mem-bar-fill pattern" id="memPatternBar" style="width:0%"></div></div>
+        </div>
+        <div class="mem-bar-item">
+          <div class="mem-bar-label"><span class="label">🔢 Number</span><span class="value" id="memNum">0</span></div>
+          <div class="mem-bar-track"><div class="mem-bar-fill number" id="memNumBar" style="width:0%"></div></div>
+        </div>
+        <div class="mem-bar-item">
+          <div class="mem-bar-label"><span class="label">📖 Flashcard</span><span class="value" id="memFlash">0</span></div>
+          <div class="mem-bar-track"><div class="mem-bar-fill flash" id="memFlashBar" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACHIEVEMENTS -->
+    <h3 style="color:var(--lavender);margin-top:2rem;margin-bottom:.5rem;font-size:1.1rem">🏅 Achievement Badges</h3>
+    <div class="achievements" id="achievements"></div>
+  </div>
+
+  <!-- WEEKLY CHART -->
+  <div style="margin-top:2rem">
+    <h3 style="color:var(--lavender);margin-bottom:1rem;font-size:1.1rem">📈 Progress Memory 7 Hari</h3>
+    <div class="chart-box">
+      <svg viewBox="0 0 700 250" id="weeklyChart"></svg>
+      <p class="chart-trend" id="chartTrend">—</p>
+    </div>
+  </div>
+</div>
+
+<!-- 5. MEMORY TIPS -->
+<div class="section">
+  <h2 class="section-title">💡 Memory Tips</h2>
+  <div class="tip-box">
+    <span class="tip-icon" id="tipIcon">🧠</span>
+    <p class="tip-text" id="tipText">—</p>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  Soma — Bangunkan kekuatan otak yang tidur • Dibuat dengan ❤️ untuk Pak Husni
+</footer>
+
+</div>
+
+<script>
+/* ========================================
+   SOMA MEMORY TRAINER
+   ======================================== */
+
+/* ===== NEURAL ANIMATION ===== */
+(function(){
+  var canvas=document.getElementById('neural-canvas');
+  var ctx=canvas.getContext('2d');
+  var W,H,particles;
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;initParticles();}
+  function initParticles(){
+    var count=Math.min(60,Math.floor(W*H/20000));
+    particles=[];
+    for(var i=0;i<count;i++){
+      particles.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3,r:Math.random()*2+1});
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    for(var i=0;i<particles.length;i++){
+      var p=particles[i];p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>W)p.vx*=-1;
+      if(p.y<0||p.y>H)p.vy*=-1;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(165,180,252,0.4)';ctx.fill();
+      for(var j=i+1;j<particles.length;j++){
+        var q=particles[j];var dx=p.x-q.x,dy=p.y-q.y;var dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<130){ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);
+          ctx.strokeStyle='rgba(45,212,191,'+(1-dist/130)*0.12+')';ctx.lineWidth=0.5;ctx.stroke();}
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',resize);resize();draw();
+})();
+
+/* ===== SESSION CHECK ===== */
+var demoMode=false;
+var urlParams=new URLSearchParams(window.location.search);
+if(urlParams.get('demo')==='1'){demoMode=true;}
+if(!demoMode){
+  var session=JSON.parse(localStorage.getItem('soma_session')||'null');
+  if(!session||!session.userId){window.location.href='login.html';}
+}
+
+/* ===== LIVE DATE TIME ===== */
+function updateDateTime(){
+  var now=new Date();
+  var days=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  var months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  var d=days[now.getDay()];
+  var dd=now.getDate();var m=months[now.getMonth()];var y=now.getFullYear();
+  var hh=String(now.getHours()).padStart(2,'0');
+  var mm=String(now.getMinutes()).padStart(2,'0');
+  var ss=String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('liveDateTime').textContent=d+', '+dd+' '+m+' '+y+' • '+hh+':'+mm+':'+ss;
+}
+setInterval(updateDateTime,1000);updateDateTime();
+
+/* ===== LOGOUT ===== */
+document.getElementById('logoutBtn').addEventListener('click',function(e){
+  e.preventDefault();
+  localStorage.removeItem('soma_session');
+  window.location.href='login.html';
+});
+
+/* ===== DATA STORAGE HELPERS ===== */
+function getScores(){return JSON.parse(localStorage.getItem('soma_memory_scores')||'{}');}
+function saveScores(s){localStorage.setItem('soma_memory_scores',JSON.stringify(s));}
+function getFlashcards(){return JSON.parse(localStorage.getItem('soma_flashcards')||'[]');}
+function saveFlashcards(f){localStorage.setItem('soma_flashcards',JSON.stringify(f));}
+function getSR(){return JSON.parse(localStorage.getItem('soma_spaced_repetition')||'{}');}
+function saveSR(s){localStorage.setItem('soma_spaced_repetition',JSON.stringify(s));}
+
+/* ===== INIT DEMO DATA ===== */
+function initDemoData(){
+  var scores=getScores();
+  if(Object.keys(scores).length===0){
+    scores={
+      wordRecall:{best:0,plays:0},
+      sequence:{best:0,plays:0},
+      pattern:{best:0,plays:0},
+      number:{best:0,plays:0},
+      flashcard:{memorized:0,total:0},
+      weekly:[],
+      gamesPlayed:0
+    };
+    for(var i=6;i>=0;i--){
+      scores.weekly.push({day:i,score:Math.floor(40+Math.random()*40)});
+    }
+    saveScores(scores);
+  }
+  var sr=getSR();
+  if(Object.keys(sr).length===0){
+    sr={streak:0,lastReview:null,schedule:[]};
+    saveSR(sr);
+  }
+  var flashcards=getFlashcards();
+  if(flashcards.length===0){
+    flashcards=[
+      {id:1,front:'Al-Fatihah',back:'Pembukaan — surat pertama Al-Quran',cat:'Quran',stage:0,nextReview:Date.now()+86400000,memorized:false},
+      {id:2,front:'Neuroplastisitas',back:'Kemampuan otak berubah dan beradaptasi',cat:'Vocabulary',stage:1,nextReview:Date.now()+86400000,memorized:false},
+      {id:3,front:'Hippocampus',back:'Pusat memori di otak',cat:'Nama',stage:0,nextReview:Date.now(),memorized:false}
+    ];
+    saveFlashcards(flashcards);
+  }
+}
+initDemoData();
+
+/* ===== UPDATE BEST SCORES ===== */
+function updateBestDisplay(){
+  var scores=getScores();
+  document.getElementById('best1').textContent=(scores.wordRecall&&scores.wordRecall.best)||0;
+  document.getElementById('best2').textContent=(scores.sequence&&scores.sequence.best)||0;
+  document.getElementById('best3').textContent=(scores.pattern&&scores.pattern.best)||0;
+  document.getElementById('best4').textContent=(scores.number&&scores.number.best)||0;
+}
+updateBestDisplay();
+
+/* ===== GAME SELECTION ===== */
+var currentGame=0;
+var currentLevel={1:'easy',2:'medium',3:'medium',4:'easy'};
+
+function selectGame(n){
+  currentGame=n;
+  for(var i=1;i<=4;i++){
+    var card=document.getElementById('gameCard'+i);
+    var area=document.getElementById('gameArea'+i);
+    if(i===n){card.classList.add('active');area.classList.add('show');}
+    else{card.classList.remove('active');area.classList.remove('show');}
+  }
+}
+
+function setLevel(game,level){
+  currentLevel[game]=level;
+  var btns=document.querySelectorAll('.level-btn[data-game="'+game+'"]');
+  btns.forEach(function(b){b.classList.remove('selected')});
+  document.querySelector('.level-btn[data-game="'+game+'"][data-level="'+level+'"]').classList.add('selected');
+}
+
+/* ===== GAME 1: WORD RECALL ===== */
+var wordPool=['bayu','tenang','sehat','otak','tidur','fokus','napas','suci','cahaya','damai',
+  'hutang','jauh','dekat','kuat','lemah','tinggi','rendah','cepat','lambat','bijak',
+  'mercy','gula','garam','madu','embun','awan','bintang','bulan','matahari','galaksi',
+  'gelombang','samudra','pulau','gunung','lembah','jurang','sungai','mata air','sumur','telaga',
+  'hutan','rimba','kebun','sawah','ladang','padang','gurun','kutub','khatulistiwa','tropis',
+  'musim','semi','panas','gugur','dingin','kemarau','penghujan','peralihan','iklim','cuaca'];
+
+var wordRecallState={words:[],timer:null,phase:'idle'};
+
+function startWordRecall(){
+  var count=currentLevel[1]==='easy'?5:currentLevel[1]==='medium'?8:12;
+  var words=[];
+  var pool=wordPool.slice();
+  for(var i=0;i<count;i++){
+    var idx=Math.floor(Math.random()*pool.length);
+    words.push(pool[idx]);
+    pool.splice(idx,1);
+  }
+  wordRecallState.words=words;
+  wordRecallState.phase='memorize';
+  var display=document.getElementById('wordDisplay');
+  display.innerHTML='<div class="countdown-timer" id="wordCountdown">10</div><div class="word-list" id="wordList"></div>';
+  var listEl=document.getElementById('wordList');
+  words.forEach(function(w,i){
+    setTimeout(function(){
+      var span=document.createElement('span');
+      span.className='word-item';
+      span.style.animationDelay=(i*0.15)+'s';
+      span.textContent=w;
+      listEl.appendChild(span);
+    },i*150);
+  });
+  var countdown=10;
+  document.getElementById('wordCountdown').textContent=countdown;
+  wordRecallState.timer=setInterval(function(){
+    countdown--;
+    var cd=document.getElementById('wordCountdown');
+    if(cd)cd.textContent=countdown;
+    if(countdown<=0){
+      clearInterval(wordRecallState.timer);
+      showRecallInput();
+    }
+  },1000);
+}
+
+function showRecallInput(){
+  wordRecallState.phase='recall';
+  var display=document.getElementById('wordDisplay');
+  display.innerHTML='<p style="color:var(--lavender-light);margin-bottom:1rem">Ketik kata yang Anda ingat (pisahkan dengan koma):</p>'+
+    '<input type="text" class="recall-input" id="recallInput" placeholder="kata1, kata2, kata3..." style="max-width:500px;margin:0 auto 1rem;display:block">'+
+    '<button class="btn btn-teal" onclick="checkWordRecall()">Cek Jawaban</button>';
+  document.getElementById('recallInput').focus();
+}
+
+function checkWordRecall(){
+  var input=document.getElementById('recallInput').value;
+  var userWords=input.split(',').map(function(w){return w.trim().toLowerCase()}).filter(function(w){return w.length>0});
+  var correct=0;
+  wordRecallState.words.forEach(function(w){
+    if(userWords.indexOf(w)>=0)correct++;
+  });
+  var total=wordRecallState.words.length;
+  var score=Math.round(correct/total*100);
+  wordRecallState.phase='done';
+  var scores=getScores();
+  if(!scores.wordRecall)scores.wordRecall={best:0,plays:0};
+  scores.wordRecall.plays++;
+  if(score>scores.wordRecall.best)scores.wordRecall.best=score;
+  scores.gamesPlayed=(scores.gamesPlayed||0)+1;
+  recordGameScore(score);
+  saveScores(scores);
+  updateBestDisplay();
+  updateMemoryScore();
+  updateAchievements();
+  var display=document.getElementById('wordDisplay');
+  display.innerHTML='<div class="result-box">'+
+    '<div class="result-score">'+score+'</div>'+
+    '<div class="result-label">'+correct+' dari '+total+' kata benar</div>'+
+    '<div style="margin:1rem 0;color:var(--text-muted);font-size:.85rem">Kata yang benar: '+wordRecallState.words.map(function(w){return userWords.indexOf(w)>=0?'<span style="color:var(--teal-light)">✓ '+w+'</span>':'<span style="color:#fca5a5">✗ '+w+'</span>'}).join(' &nbsp; ')+'</div>'+
+    '<button class="btn btn-purple" onclick="startWordRecall()">Coba Lagi</button>'+
+    '</div>';
+}
+
+/* ===== GAME 2: SEQUENCE MEMORY ===== */
+var seqState={level:1,sequence:[],userStep:0,playing:false,canClick:false};
+
+function startSequence(){
+  seqState.level=1;
+  seqState.sequence=[];
+  nextSequenceRound();
+}
+
+function nextSequenceRound(){
+  seqState.sequence.push(Math.floor(Math.random()*9));
+  seqState.userStep=0;
+  seqState.canClick=false;
+  document.getElementById('seqStatus').textContent='Level '+seqState.level+' — '+seqState.sequence.length+' langkah. Awasi!';
+  document.getElementById('seqStartBtn').style.display='none';
+  var grid=document.getElementById('seqGrid');
+  grid.innerHTML='';
+  for(var i=0;i<9;i++){
+    var cell=document.createElement('div');
+    cell.className='seq-cell';
+    cell.setAttribute('data-idx',i);
+    cell.addEventListener('click',function(){handleSeqClick(parseInt(this.getAttribute('data-idx')))});
+    grid.appendChild(cell);
+  }
+  setTimeout(function(){playSequence();},800);
+}
+
+function playSequence(){
+  var step=0;
+  seqState.playing=true;
+  function next(){
+    if(step>=seqState.sequence.length){
+      seqState.playing=false;
+      seqState.canClick=true;
+      document.getElementById('seqStatus').textContent='Sekarang giliran Anda! Klik sesuai urutan.';
+      return;
+    }
+    var cellIdx=seqState.sequence[step];
+    var cell=document.querySelector('.seq-cell[data-idx="'+cellIdx+'"]');
+    cell.classList.add('lit');
+    setTimeout(function(){
+      cell.classList.remove('lit');
+      step++;
+      setTimeout(next,300);
+    },600);
+  }
+  next();
+}
+
+function handleSeqClick(idx){
+  if(!seqState.canClick)return;
+  var cell=document.querySelector('.seq-cell[data-idx="'+idx+'"]');
+  cell.classList.add('user-click');
+  setTimeout(function(){cell.classList.remove('user-click');},300);
+  if(idx===seqState.sequence[seqState.userStep]){
+    seqState.userStep++;
+    if(seqState.userStep>=seqState.sequence.length){
+      seqState.canCall=false;
+      seqState.level++;
+      document.getElementById('seqStatus').textContent='✓ Benar! Level '+seqState.level+' berikutnya...';
+      setTimeout(function(){nextSequenceRound();},1200);
+    }
+  }else{
+    seqState.canClick=false;
+    document.getElementById('seqStatus').textContent='✗ Salah! Anda mencapai Level '+seqState.level+'.';
+    var scores=getScores();
+    if(!scores.sequence)scores.sequence={best:0,plays:0};
+    scores.sequence.plays++;
+    var bestLevel=seqState.level-1;
+    if(bestLevel>scores.sequence.best)scores.sequence.best=bestLevel;
+    scores.gamesPlayed=(scores.gamesPlayed||0)+1;
+    var score=Math.min(100,bestLevel*15);
+    recordGameScore(score);
+    saveScores(scores);
+    updateBestDisplay();
+    updateMemoryScore();
+    updateAchievements();
+    document.getElementById('seqStartBtn').style.display='inline-block';
+    document.getElementById('seqStartBtn').textContent='Coba Lagi';
+  }
+}
+
+/* ===== GAME 3: PATTERN MATCHING ===== */
+var patternEmojis=['🧩','🧠','😴','🌊','🎯','📊','⚙️','📖'];
+var patternState={cards:[],flipped:[],moves:0,pairs:0,startTime:0,timer:null,playing:false};
+
+function startPattern(){
+  patternState.cards=[];
+  patternState.flipped=[];
+  patternState.moves=0;
+  patternState.pairs=0;
+  patternState.playing=true;
+  patternState.startTime=Date.now();
+  var pool=patternEmojis.concat(patternEmojis);
+  for(var i=pool.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var tmp=pool[i];pool[i]=pool[j];pool[j]=tmp;
+  }
+  patternState.cards=pool;
+  document.getElementById('patternMoves').textContent='0';
+  document.getElementById('patternPairs').textContent='0';
+  document.getElementById('patternTime').textContent='0s';
+  document.getElementById('patternStartBtn').style.display='none';
+  var grid=document.getElementById('patternGrid');
+  grid.innerHTML='';
+  pool.forEach(function(emoji,i){
+    var card=document.createElement('div');
+    card.className='pattern-card';
+    card.setAttribute('data-idx',i);
+    card.innerHTML='<div class="pattern-card-inner"><div class="pattern-card-front"></div><div class="pattern-card-back">'+emoji+'</div></div>';
+    card.addEventListener('click',function(){flipPatternCard(i)});
+    grid.appendChild(card);
+  });
+  if(patternState.timer)clearInterval(patternState.timer);
+  patternState.timer=setInterval(function(){
+    var elapsed=Math.floor((Date.now()-patternState.startTime)/1000);
+    document.getElementById('patternTime').textContent=elapsed+'s';
+  },1000);
+}
+
+function flipPatternCard(idx){
+  if(!patternState.playing)return;
+  if(patternState.flipped.length>=2)return;
+  var card=document.querySelector('.pattern-card[data-idx="'+idx+'"]');
+  if(card.classList.contains('flipped')||card.classList.contains('matched'))return;
+  card.classList.add('flipped');
+  patternState.flipped.push({idx:idx,emoji:patternState.cards[idx]});
+  if(patternState.flipped.length===2){
+    patternState.moves++;
+    document.getElementById('patternMoves').textContent=patternState.moves;
+    var f1=patternState.flipped[0];
+    var f2=patternState.flipped[1];
+    if(f1.emoji===f2.emoji){
+      setTimeout(function(){
+        document.querySelector('.pattern-card[data-idx="'+f1.idx+'"]').classList.add('matched');
+        document.querySelector('.pattern-card[data-idx="'+f2.idx+'"]').classList.add('matched');
+        patternState.pairs++;
+        document.getElementById('patternPairs').textContent=patternState.pairs;
+        patternState.flipped=[];
+        if(patternState.pairs>=8){
+          patternState.playing=false;
+          clearInterval(patternState.timer);
+          var elapsed=Math.floor((Date.now()-patternState.startTime)/1000);
+          var score=Math.max(0,Math.round(100-patternState.moves*3-elapsed*0.5));
+          var scores=getScores();
+          if(!scores.pattern)scores.pattern={best:0,plays:0};
+          scores.pattern.plays++;
+          if(score>scores.pattern.best)scores.pattern.best=score;
+          scores.gamesPlayed=(scores.gamesPlayed||0)+1;
+          recordGameScore(score);
+          saveScores(scores);
+          updateBestDisplay();
+          updateMemoryScore();
+          updateAchievements();
+          var grid=document.getElementById('patternGrid');
+          var result=document.createElement('div');
+          result.style.cssText='grid-column:1/-1;text-align:center;padding:1.5rem';
+          result.innerHTML='<div class="result-score">'+score+'</div><div class="result-label">'+patternState.moves+' langkah • '+elapsed+' detik</div><button class="btn btn-purple" style="margin-top:1rem" onclick="startPattern()">Coba Lagi</button>';
+          grid.appendChild(result);
+          document.getElementById('patternStartBtn').style.display='inline-block';
+          document.getElementById('patternStartBtn').textContent='Mulai Lagi';
+        }
+      },500);
+    }else{
+      setTimeout(function(){
+        document.querySelector('.pattern-card[data-idx="'+f1.idx+'"]').classList.remove('flipped');
+        document.querySelector('.pattern-card[data-idx="'+f2.idx+'"]').classList.remove('flipped');
+        patternState.flipped=[];
+      },900);
+    }
+  }
+}
+
+/* ===== GAME 4: NUMBER MEMORY ===== */
+var numState={level:1,number:'',playing:false};
+
+function startNumberMemory(){
+  numState.level=1;
+  startNumberRound();
+}
+
+function startNumberRound(){
+  var digits=numState.level+2;
+  if(digits>10)digits=10;
+  numState.number='';
+  for(var i=0;i<digits;i++){
+    numState.number+=Math.floor(Math.random()*10);
+  }
+  numState.playing=true;
+  document.getElementById('numStatus').textContent='Level '+numState.level+' ('+digits+' digit) — Hafal!';
+  document.getElementById('numInputArea').style.display='none';
+  document.getElementById('numStartArea').style.display='none';
+  var display=document.getElementById('numDisplay');
+  display.className='number-display';
+  display.textContent=numState.number;
+  var countdown=5;
+  var cdEl=document.createElement('div');
+  cdEl.style.cssText='font-size:1rem;color:var(--text-muted);margin-top:1rem';
+  cdEl.textContent='Hilang dalam '+countdown+' detik';
+  display.appendChild(cdEl);
+  var timer=setInterval(function(){
+    countdown--;
+    if(cdEl)cdEl.textContent='Hilang dalam '+countdown+' detik';
+    if(countdown<=0){
+      clearInterval(timer);
+      display.className='number-display hide';
+      display.textContent='?';
+      setTimeout(function(){
+        display.textContent='';
+        document.getElementById('numInputArea').style.display='block';
+        document.getElementById('numInput').value='';
+        document.getElementById('numInput').focus();
+      },300);
+    }
+  },1000);
+}
+
+function checkNumber(){
+  var input=document.getElementById('numInput').value.trim();
+  if(input===numState.number){
+    numState.level++;
+    document.getElementById('numStatus').textContent='✓ Benar! Level '+numState.level+' berikutnya...';
+    document.getElementById('numInputArea').style.display='none';
+    setTimeout(function(){startNumberRound();},1500);
+  }else{
+    document.getElementById('numStatus').textContent='✗ Salah! Jawaban: '+numState.number+'. Anda mencapai Level '+numState.level+'.';
+    document.getElementById('numInputArea').style.display='none';
+    document.getElementById('numStartArea').style.display='block';
+    document.getElementById('numStartBtn').textContent='Coba Lagi';
+    var scores=getScores();
+    if(!scores.number)scores.number={best:0,plays:0};
+    scores.number.plays++;
+    var bestLevel=numState.level-1;
+    if(bestLevel>scores.number.best)scores.number.best=bestLevel;
+    scores.gamesPlayed=(scores.gamesPlayed||0)+1;
+    var score=Math.min(100,bestLevel*12);
+    recordGameScore(score);
+    saveScores(scores);
+    updateBestDisplay();
+    updateMemoryScore();
+    updateAchievements();
+    numState.playing=false;
+  }
+}
+
+/* ===== RECORD GAME SCORE (weekly) ===== */
+function recordGameScore(score){
+  var scores=getScores();
+  if(!scores.weekly)scores.weekly=[];
+  var today=new Date().getDay();
+  var found=false;
+  for(var i=0;i<scores.weekly.length;i++){
+    if(scores.weekly[i].day===0){
+      scores.weekly[i].score=Math.max(scores.weekly[i].score,score);
+      found=true;
+      break;
+    }
+  }
+  if(!found&&scores.weekly.length<7){
+    scores.weekly.push({day:0,score:score});
+  }
+  saveScores(scores);
+}
+
+/* ===== FLASHCARD ===== */
+var fcIndex=0;
+var flashcards=getFlashcards();
+
+function renderFlashcardList(){
+  flashcards=getFlashcards();
+  var listEl=document.getElementById('fcList');
+  listEl.innerHTML='';
+  if(flashcards.length===0){
+    listEl.innerHTML='<div style="text-align:center;color:var(--text-muted);padding:1rem;font-size:.85rem">Belum ada flashcard.</div>';
+    return;
+  }
+  flashcards.forEach(function(fc){
+    var div=document.createElement('div');
+    div.className='fc-list-item';
+    div.innerHTML='<span class="fc-front">'+fc.front+'</span>'+
+      '<span><span class="fc-cat">'+fc.cat+'</span> <span class="fc-del" data-id="'+fc.id+'" style="margin-left:.5rem">🗑️</span></span>';
+    listEl.appendChild(div);
+  });
+  listEl.querySelectorAll('.fc-del').forEach(function(el){
+    el.addEventListener('click',function(){
+      var id=parseInt(this.getAttribute('data-id'));
+      var fcs=getFlashcards();
+      fcs=fcs.filter(function(c){return c.id!==id});
+      saveFlashcards(fcs);
+      flashcards=fcs;
+      updateFlashcardDisplay();
+      renderFlashcardList();
+      updateMemoryScore();
+    });
+  });
+}
+
+function addFlashcard(){
+  var front=document.getElementById('fcFront').value.trim();
+  var back=document.getElementById('fcBack').value.trim();
+  var cat=document.getElementById('fcCategory').value;
+  if(!front||!back){alert('Isi depan dan belakang flashcard!');return;}
+  var fcs=getFlashcards();
+  fcs.push({id:Date.now(),front:front,back:back,cat:cat,stage:0,nextReview:Date.now()+86400000,memorized:false});
+  saveFlashcards(fcs);
+  flashcards=fcs;
+  document.getElementById('fcFront').value='';
+  document.getElementById('fcBack').value='';
+  updateFlashcardDisplay();
+  renderFlashcardList();
+  updateMemoryScore();
+  updateAchievements();
+}
+
+function updateFlashcardDisplay(){
+  var fcs=getFlashcards();
+  document.getElementById('fcTotal').textContent=fcs.length;
+  var memorized=fcs.filter(function(c){return c.memorized}).length;
+  document.getElementById('fcMemorized').textContent=memorized;
+  if(fcs.length===0){
+    document.getElementById('fcEmpty').style.display='block';
+    document.getElementById('fcCardArea').style.display='none';
+    return;
+  }
+  document.getElementById('fcEmpty').style.display='none';
+  document.getElementById('fcCardArea').style.display='block';
+  if(fcIndex>=fcs.length)fcIndex=0;
+  var fc=fcs[fcIndex];
+  document.getElementById('fcShowFront').textContent=fc.front;
+  document.getElementById('fcShowBack').textContent=fc.back;
+  document.getElementById('fcShowCat').textContent=fc.cat;
+  document.getElementById('fcIndex').textContent=fcIndex+1;
+  document.getElementById('fcTotal2').textContent=fcs.length;
+  document.getElementById('flashcard3d').classList.remove('flipped');
+}
+
+function flipFlashcard(){
+  document.getElementById('flashcard3d').classList.toggle('flipped');
+}
+
+function reviewFlashcard(known){
+  var fcs=getFlashcards();
+  if(fcIndex>=fcs.length)return;
+  var fc=fcs[fcIndex];
+  var stages=[1,3,7,21];
+  if(known){
+    fc.stage=Math.min(fc.stage+1,stages.length-1);
+    fc.nextReview=Date.now()+stages[fc.stage]*86400000;
+    if(fc.stage>=stages.length-1)fc.memorized=true;
+  }else{
+    fc.stage=0;
+    fc.nextReview=Date.now()+86400000;
+    fc.memorized=false;
+  }
+  saveFlashcards(fcs);
+  flashcards=fcs;
+  // Update streak
+  var sr=getSR();
+  var today=new Date().toDateString();
+  if(sr.lastReview!==today){
+    var yesterday=new Date(Date.now()-86400000).toDateString();
+    if(sr.lastReview===yesterday){sr.streak++;}
+    else{sr.streak=1;}
+    sr.lastReview=today;
+    saveSR(sr);
+  }
+  fcIndex++;
+  if(fcIndex>=fcs.length){
+    fcIndex=0;
+    alert('Semua flashcard sudah direview! Kembali ke kartu pertama.');
+  }
+  updateFlashcardDisplay();
+  updateSRDisplay();
+  updateMemoryScore();
+  updateAchievements();
+}
+
+/* ===== SPACED REPETITION ===== */
+function updateSRDisplay(){
+  var fcs=getFlashcards();
+  var sr=getSR();
+  var now=Date.now();
+  var dueToday=fcs.filter(function(c){return c.nextReview<=now&&!c.memorized});
+  var pending=fcs.filter(function(c){return c.nextReview>now&&!c.memorized});
+  document.getElementById('srDueToday').textContent=dueToday.length;
+  document.getElementById('srPending').textContent=pending.length;
+  document.getElementById('srStreak').textContent=sr.streak||0;
+
+  // Review list
+  var reviewList=document.getElementById('srReviewList');
+  if(dueToday.length===0){
+    reviewList.innerHTML='<div style="text-align:center;color:var(--text-muted);font-size:.85rem;padding:1rem">Tidak ada kartu untuk diulang hari ini. 🎉</div>';
+  }else{
+    reviewList.innerHTML='';
+    dueToday.forEach(function(c){
+      var div=document.createElement('div');
+      div.className='sr-review-item';
+      var stageLabels=['Baru','3 hari','7 hari','21 hari'];
+      div.innerHTML='<span class="sr-front">'+c.front+'</span><span class="sr-stage">'+stageLabels[c.stage]+'</span>';
+      reviewList.appendChild(div);
+    });
+  }
+
+  // Calendar
+  var calEl=document.getElementById('srCalendar');
+  calEl.innerHTML='';
+  var dayNames=['M','S','S','R','K','J','S'];
+  var today=new Date();
+  for(var i=0;i<7;i++){
+    var d=new Date(today);
+    d.setDate(d.getDate()+i);
+    var dueCount=0;
+    var doneCount=0;
+    fcs.forEach(function(c){
+      var reviewDate=new Date(c.nextReview);
+      if(reviewDate.toDateString()===d.toDateString()){
+        if(c.memorized)doneCount++;else dueCount++;
+      }
+    });
+    var dayDiv=document.createElement('div');
+    dayDiv.className='sr-cal-day'+(i===0?' today':'');
+    var dotClass=dueCount>0?'due':(doneCount>0?'done':'');
+    dayDiv.innerHTML='<span class="day-num">'+d.getDate()+'</span>'+
+      (dotClass?'<div class="day-dot '+dotClass+'"></div>':'');
+    calEl.appendChild(dayDiv);
+  }
+}
+
+/* ===== MEMORY SCORE ===== */
+function updateMemoryScore(){
+  var scores=getScores();
+  var fcs=getFlashcards();
+  var wordScore=(scores.wordRecall&&scores.wordRecall.best)||0;
+  var seqScore=Math.min(100,((scores.sequence&&scores.sequence.best)||0)*15);
+  var patternScore=(scores.pattern&&scores.pattern.best)||0;
+  var numScore=Math.min(100,((scores.number&&scores.number.best)||0)*12);
+  var flashTotal=fcs.length;
+  var flashMem=fcs.filter(function(c){return c.memorized}).length;
+  var flashScore=flashTotal>0?Math.round(flashMem/flashTotal*100):0;
+  if(!scores.flashcard)scores.flashcard={memorized:flashMem,total:flashTotal};
+  else{scores.flashcard.memorized=flashMem;scores.flashcard.total=flashTotal;}
+  saveScores(scores);
+
+  var totalScore=Math.round((wordScore+seqScore+patternScore+numScore+flashScore)/5);
+  document.getElementById('memWord').textContent=wordScore;
+  document.getElementById('memWordBar').style.width=wordScore+'%';
+  document.getElementById('memSeq').textContent=Math.round(seqScore);
+  document.getElementById('memSeqBar').style.width=seqScore+'%';
+  document.getElementById('memPattern').textContent=patternScore;
+  document.getElementById('memPatternBar').style.width=patternScore+'%';
+  document.getElementById('memNum').textContent=Math.round(numScore);
+  document.getElementById('memNumBar').style.width=numScore+'%';
+  document.getElementById('memFlash').textContent=flashScore;
+  document.getElementById('memFlashBar').style.width=flashScore+'%';
+
+  // Animate circle
+  var ring=document.getElementById('memScoreRing');
+  var circumference=534;
+  ring.style.strokeDashoffset=circumference-(totalScore/100)*circumference;
+  var numEl=document.getElementById('memScoreText');
+  var numBig=document.getElementById('memScoreNum');
+  var current=0;
+  var animTimer=setInterval(function(){
+    current+=2;if(current>=totalScore){current=totalScore;clearInterval(animTimer);}
+    numEl.textContent=current;
+    numBig.textContent=current;
+  },30);
+}
+
+/* ===== ACHIEVEMENTS ===== */
+function updateAchievements(){
+  var scores=getScores();
+  var fcs=getFlashcards();
+  var sr=getSR();
+  var gamesPlayed=scores.gamesPlayed||0;
+  var achievements=[
+    {id:'first',icon:'🎯',name:'Pertama Kalinya',desc:'Selesaikan 1 game',unlocked:gamesPlayed>=1},
+    {id:'active',icon:'⚡',name:'Otak Aktif',desc:'Selesaikan 5 game',unlocked:gamesPlayed>=5},
+    {id:'young',icon:'🧠',name:'Memory Muda',desc:'Skor 80+ di salah satu game',
+      unlocked:((scores.wordRecall&&scores.wordRecall.best>=80)||(scores.pattern&&scores.pattern.best>=80))},
+    {id:'hundred',icon:'💯',name:'Hafal 100',desc:'Buat 100 flashcard',unlocked:fcs.length>=100},
+    {id:'consistent',icon:'🔥',name:'Konsisten',desc:'7 hari streak review',unlocked:(sr.streak||0)>=7}
+  ];
+  var el=document.getElementById('achievements');
+  el.innerHTML='';
+  achievements.forEach(function(a){
+    var div=document.createElement('div');
+    div.className='achievement '+(a.unlocked?'unlocked':'locked');
+    div.innerHTML='<div class="ach-icon">'+a.icon+'</div><div class="ach-name">'+a.name+'</div><div class="ach-desc">'+a.desc+'</div>';
+    el.appendChild(div);
+  });
+}
+
+/* ===== WEEKLY CHART ===== */
+function drawWeeklyChart(){
+  var scores=getScores();
+  var weekly=scores.weekly||[];
+  if(weekly.length===0){
+    for(var i=6;i>=0;i--){
+      weekly.push({day:i,score:Math.floor(40+Math.random()*40)});
+    }
+    scores.weekly=weekly;
+    saveScores(scores);
+  }
+  var days=['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
+  // Sort by day
+  weekly.sort(function(a,b){return a.day-b.day});
+  var scoresArr=weekly.map(function(d){return d.score;});
+  var svg=document.getElementById('weeklyChart');
+  var W2=700,H2=250,padX=50,padTop=30,padBot=40;
+  var chartW=W2-padX-30,chartH=H2-padTop-padBot;
+  var maxVal=100;
+  var pts=scoresArr.map(function(s,i){
+    var x=padX+(chartW/(scoresArr.length-1))*i;
+    var y=padTop+chartH-(s/maxVal)*chartH;
+    return{x:x,y:y,score:s};
+  });
+  var pathD='M'+pts[0].x+','+pts[0].y;
+  for(var i=1;i<pts.length;i++){pathD+=' L'+pts[i].x+','+pts[i].y;}
+  var areaD=pathD+' L'+pts[pts.length-1].x+','+(padTop+chartH)+' L'+pts[0].x+','+(padTop+chartH)+' Z';
+  var svgContent='<defs>';
+  svgContent+='<linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">';
+  svgContent+='<stop offset="0%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#0d9488"/>';
+  svgContent+='</linearGradient>';
+  svgContent+='<linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">';
+  svgContent+='<stop offset="0%" stop-color="#8b5cf6" stop-opacity=".3"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>';
+  svgContent+='</linearGradient></defs>';
+  for(var g=0;g<=4;g++){
+    var gy=padTop+(chartH/4)*g;
+    svgContent+='<line x1="'+padX+'" y1="'+gy+'" x2="'+(padX+chartW)+'" y2="'+gy+'" stroke="rgba(165,180,252,.1)" stroke-width="1"/>';
+    svgContent+='<text x="20" y="'+(gy+4)+'" fill="#94a3b8" font-size="10">'+(100-g*25)+'</text>';
+  }
+  svgContent+='<path d="'+areaD+'" fill="url(#areaGrad)"/>';
+  svgContent+='<path d="'+pathD+'" stroke="url(#lineGrad)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 5px rgba(139,92,246,.4))"/>';
+  pts.forEach(function(p,i){
+    svgContent+='<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="#0f172a" stroke="#8b5cf6" stroke-width="2"/>';
+    svgContent+='<text x="'+p.x+'" y="'+(p.y-12)+'" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="600">'+p.score+'</text>';
+    svgContent+='<text x="'+p.x+'" y="'+(H2-15)+'" text-anchor="middle" fill="#94a3b8" font-size="11">'+days[i]+'</text>';
+  });
+  svg.innerHTML=svgContent;
+  var trendEl=document.getElementById('chartTrend');
+  var diff=scoresArr[scoresArr.length-1]-scoresArr[0];
+  if(diff>0){trendEl.innerHTML='📈 Tren <span style="color:#2dd4bf;font-weight:600">naik</span> (+'+diff+' poin minggu ini)';}
+  else if(diff<0){trendEl.innerHTML='📉 Tren <span style="color:#fb923c;font-weight:600">turun</span> ('+diff+' poin minggu ini)';}
+  else{trendEl.innerHTML='➡️ Tren <span style="color:#a5b4fc;font-weight:600">stabil</span> minggu ini';}
+}
+
+/* ===== MEMORY TIPS ===== */
+var tips=[
+  {icon:'🧠',text:'Hippocampus adalah pusat memory. Tidur cukup = hippocampus tumbuh.'},
+  {icon:'🔁',text:'Spaced repetition: ulang 1 hari, 3 hari, 7 hari, 21 hari = hafal permanen.'},
+  {icon:'🧩',text:'Chunking: pecah info jadi potongan kecil, otak lebih mudah hafal.'},
+  {icon:'👁️',text:'Visualisasi: ubah kata jadi gambar di otak, 2x lebih mudah hafal.'},
+  {icon:'🏃',text:'Olahraga kardio meningkatkan aliran darah ke otak = memory naik.'}
+];
+var tipIdx=Math.floor(Math.random()*tips.length);
+document.getElementById('tipIcon').textContent=tips[tipIdx].icon;
+document.getElementById('tipText').textContent=tips[tipIdx].text;
+
+/* ===== INIT ===== */
+renderFlashcardList();
+updateFlashcardDisplay();
+updateSRDisplay();
+updateMemoryScore();
+updateAchievements();
+drawWeeklyChart();
+</script>
+</body>
+</html>

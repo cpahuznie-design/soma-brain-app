@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soma — Settings</title>
+<style>
+:root {
+  --bg-deep: #0f172a;
+  --bg-mid: #1e3a5f;
+  --card: #1e293b;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --teal: #0d9488;
+  --teal-bright: #2dd4bf;
+  --soft-blue: #38bdf8;
+  --lavender: #a5b4fc;
+  --lavender-light: #c7d2fe;
+  --purple: #8b5cf6;
+  --purple-light: #c4b5fd;
+  --orange: #fb923c;
+  --red: #ef4444;
+  --border: rgba(56, 189, 248, 0.12);
+  --glow-teal: 0 0 24px rgba(13, 148, 136, 0.18);
+  --glow-blue: 0 0 24px rgba(56, 189, 248, 0.15);
+  --glow-lav: 0 0 24px rgba(165, 180, 252, 0.15);
+  --glow-purple: 0 0 24px rgba(139, 92, 246, 0.18);
+  --radius: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background: radial-gradient(ellipse at top, #1e3a5f 0%, #0f172a 70%);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(13, 148, 136, 0.08), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.06), transparent 50%),
+    radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.05), transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: drift 20s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-10px, 10px); }
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* NAVBAR */
+.navbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 14px 16px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 24px;
+  justify-content: center;
+  position: sticky;
+  top: 12px;
+  z-index: 100;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.navbar a {
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.navbar a:hover {
+  color: var(--text);
+  background: rgba(56, 189, 248, 0.1);
+  box-shadow: var(--glow-blue);
+}
+
+.navbar a.active {
+  color: var(--teal-bright);
+  background: rgba(13, 148, 136, 0.12);
+  box-shadow: var(--glow-teal);
+}
+
+.page-header { text-align: center; margin-bottom: 28px; }
+
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--teal-bright), var(--lavender));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px;
+}
+
+.page-header p { color: var(--text-muted); font-size: 0.95rem; }
+
+/* CARD */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--glow-teal);
+  transition: all 0.4s ease;
+}
+
+.card:hover {
+  box-shadow: 0 0 32px rgba(13, 148, 136, 0.25);
+  border-color: rgba(45, 212, 191, 0.3);
+}
+
+.card h2 {
+  font-size: 1.25rem;
+  margin-bottom: 16px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card h2 .icon { font-size: 1.4rem; }
+
+.card.danger {
+  border-color: rgba(239, 68, 68, 0.2);
+  box-shadow: 0 0 24px rgba(239, 68, 68, 0.1);
+}
+
+.card.danger h2 { color: #fca5a5; }
+
+label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  margin-top: 14px;
+}
+
+input[type="text"], input[type="email"], input[type="number"], select {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+input[type="text"]:focus, input[type="email"]:focus, input[type="number"]:focus, select:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: var(--glow-teal);
+}
+
+select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+
+select option { background: var(--card); color: var(--text); }
+
+/* SLIDER */
+input[type="range"] {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: rgba(56, 189, 248, 0.15);
+  border-radius: 3px;
+  outline: none;
+  margin-top: 8px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--teal-bright);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.6);
+  transition: all 0.3s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--teal-bright);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.6);
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.slider-row .slider-label { flex: 1; }
+.slider-row .slider-val {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--teal-bright);
+  min-width: 80px;
+  text-align: right;
+}
+
+/* AVATAR PICKER */
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.avatar-opt {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.avatar-opt:hover { border-color: var(--teal); transform: scale(1.1); }
+
+.avatar-opt.selected {
+  border-color: var(--teal-bright);
+  box-shadow: 0 0 16px rgba(45, 212, 191, 0.4);
+  background: rgba(13, 148, 136, 0.15);
+}
+
+/* TOGGLE SWITCH */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(165, 180, 252, 0.06);
+}
+
+.toggle-row:last-child { border-bottom: none; }
+
+.toggle-info { flex: 1; }
+.toggle-info .t-title { font-size: 0.95rem; color: var(--text); }
+.toggle-info .t-desc { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+
+.toggle {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  flex-shrink: 0;
+  margin-left: 14px;
+}
+
+.toggle input { opacity: 0; width: 0; height: 0; }
+
+.toggle .slider {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toggle .slider::before {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  left: 3px; top: 3px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.toggle input:checked + .slider {
+  background: rgba(13, 148, 136, 0.3);
+  border-color: var(--teal);
+}
+
+.toggle input:checked + .slider::before {
+  background: var(--teal-bright);
+  transform: translateX(22px);
+  box-shadow: 0 0 8px rgba(45, 212, 191, 0.5);
+}
+
+/* BUTTONS */
+.btn {
+  display: inline-block;
+  padding: 10px 24px;
+  background: linear-gradient(135deg, var(--teal), #0f766e);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 16px;
+}
+
+.btn:hover { transform: scale(1.03); box-shadow: 0 0 24px rgba(13, 148, 136, 0.5); }
+.btn:active { transform: scale(0.98); }
+
+.btn.secondary {
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: var(--soft-blue);
+}
+
+.btn.secondary:hover { box-shadow: var(--glow-blue); }
+
+.btn.purple {
+  background: linear-gradient(135deg, var(--purple), #7c3aed);
+}
+
+.btn.purple:hover { box-shadow: 0 0 24px rgba(139, 92, 246, 0.5); }
+
+.btn.danger {
+  background: linear-gradient(135deg, var(--red), #b91c1c);
+}
+
+.btn.danger:hover { box-shadow: 0 0 24px rgba(239, 68, 68, 0.5); }
+
+.btn.full { width: 100%; }
+
+.btn-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.btn-row .btn { margin-top: 0; flex: 1; min-width: 180px; }
+
+/* PROFILE DISPLAY */
+.profile-display {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.profile-avatar {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: rgba(13, 148, 136, 0.15);
+  border: 2px solid var(--teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.profile-info .p-name { font-size: 1.1rem; font-weight: 700; color: var(--lavender-light); }
+.profile-info .p-email { font-size: 0.85rem; color: var(--text-muted); margin-top: 2px; }
+
+.edit-form { display: none; }
+.edit-form.show { display: block; }
+
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* DANGER ZONE */
+.danger-item {
+  padding: 16px;
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.danger-item:last-child { margin-bottom: 0; }
+
+.danger-item .d-title { font-size: 0.95rem; font-weight: 600; color: #fca5a5; }
+.danger-item .d-desc { font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; margin-bottom: 10px; }
+
+/* TARGETS */
+.target-item {
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(165, 180, 252, 0.06);
+}
+
+.target-item:last-child { border-bottom: none; }
+
+.target-item .t-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.target-item .t-label { font-size: 0.9rem; color: var(--text); flex: 1; }
+.target-item .t-input { width: 100px; }
+
+/* INFO BOX */
+.info-box {
+  padding: 14px 16px;
+  background: rgba(165, 180, 252, 0.06);
+  border: 1px solid rgba(165, 180, 252, 0.15);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: var(--lavender-light);
+  margin-top: 16px;
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid var(--teal);
+  color: var(--teal-bright);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  z-index: 999;
+  transition: all 0.4s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--glow-teal);
+}
+
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+.toast.warn { border-color: var(--orange); color: var(--orange); }
+
+/* NOTIF BANNER */
+.notif-banner {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid var(--teal);
+  border-radius: 14px;
+  padding: 16px 28px;
+  z-index: 999;
+  transition: all 0.4s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--glow-teal);
+  text-align: center;
+  max-width: 90%;
+}
+
+.notif-banner.show { transform: translateX(-50%) translateY(0); }
+
+.notif-banner .nb-icon { font-size: 1.8rem; margin-bottom: 6px; }
+.notif-banner .nb-title { font-size: 1rem; font-weight: 700; color: var(--teal-bright); }
+.notif-banner .nb-body { font-size: 0.85rem; color: var(--text); margin-top: 4px; }
+
+/* DEMO BADGE */
+.demo-badge {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  color: var(--lavender);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  z-index: 200;
+}
+
+/* FOOTER */
+.footer {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 24px;
+  margin-top: 20px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .row { grid-template-columns: 1fr; }
+  .navbar { justify-content: flex-start; overflow-x: auto; }
+  .page-header h1 { font-size: 1.5rem; }
+  .avatar-grid { grid-template-columns: repeat(6, 1fr); }
+  .btn-row .btn { min-width: 100%; }
+}
+
+@media (max-width: 400px) {
+  .avatar-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <nav class="navbar">
+    <a href="dashboard.html">🧠 Dashboard</a>
+    <a href="sleep.html">😴 Tidur</a>
+    <a href="relax.html">🌊 Relaksasi</a>
+    <a href="game.html">🎮 Game</a>
+    <a href="learn.html">📖 Belajar</a>
+    <a href="settings.html" class="active">⚙️ Settings</a>
+  </nav>
+
+  <div class="page-header">
+    <h1>⚙️ Settings</h1>
+    <p>Pengaturan pribadi & preferensi SOMA</p>
+  </div>
+
+  <!-- SECTION 1: PROFIL -->
+  <div class="card">
+    <h2><span class="icon">👤</span> Profil</h2>
+    <div class="profile-display" id="profileDisplay">
+      <div class="profile-avatar" id="profAvatar">🧠</div>
+      <div class="profile-info">
+        <div class="p-name" id="profName">—</div>
+        <div class="p-email" id="profEmail">—</div>
+      </div>
+      <button class="btn secondary" onclick="toggleEditForm()">✏️ Edit</button>
+    </div>
+    <div class="edit-form" id="editForm">
+      <label>Nama</label>
+      <input type="text" id="editName" placeholder="Nama lengkap">
+      <label>Email</label>
+      <input type="email" id="editEmail" placeholder="email@contoh.com">
+      <label>Pilih Avatar</label>
+      <div class="avatar-grid" id="avatarGrid"></div>
+      <div class="btn-row">
+        <button class="btn" onclick="saveProfile()">💾 Simpan</button>
+        <button class="btn secondary" onclick="toggleEditForm()">✕ Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: TARGET PERSONAL -->
+  <div class="card">
+    <h2><span class="icon">🎯</span> Target Personal</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem">Atur target harian Bapak. SOMA akan bantu lacak progress.</p>
+
+    <div class="target-item">
+      <div class="t-row">
+        <span class="t-label">😴 Target jam tidur per malam</span>
+      </div>
+      <div class="slider-row">
+        <div class="slider-label"><input type="range" id="targetSleep" min="4" max="10" step="0.5" value="7.5"></div>
+        <div class="slider-val" id="targetSleepVal">7.5 jam</div>
+      </div>
+    </div>
+
+    <div class="target-item">
+      <div class="t-row">
+        <span class="t-label">🎯 Target sesi fokus per hari</span>
+        <input type="number" class="t-input" id="targetFocus" min="1" max="12" value="4">
+      </div>
+    </div>
+
+    <div class="target-item">
+      <div class="t-row">
+        <span class="t-label">🧩 Target memory game per hari</span>
+        <input type="number" class="t-input" id="targetMemory" min="1" max="10" value="2">
+      </div>
+    </div>
+
+    <div class="target-item">
+      <div class="t-row">
+        <span class="t-label">📖 Target belajar per hari (menit)</span>
+        <input type="number" class="t-input" id="targetLearn" min="5" max="240" step="5" value="30">
+      </div>
+    </div>
+
+    <button class="btn" onclick="saveTargets()">💾 Simpan Target</button>
+  </div>
+
+  <!-- SECTION 3: NOTIFIKASI -->
+  <div class="card">
+    <h2><span class="icon">🔔</span> Notifikasi</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem">Atur reminder untuk aktivitas otak Bapak.</p>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="t-title">😴 Reminder Tidur</div>
+        <div class="t-desc">Pengingat persiapan tidur jam 21:30</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="notifSleep" checked><span class="slider"></span></label>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="t-title">🌅 Reminder Fokus</div>
+        <div class="t-desc">Pengingat sesi fokus di pagi hari</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="notifFocus" checked><span class="slider"></span></label>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="t-title">🌇 Reminder Memory Game</div>
+        <div class="t-desc">Pengingat memory game di sore hari</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="notifMemory"><span class="slider"></span></label>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="t-title">🌙 Reminder Belajar</div>
+        <div class="t-desc">Pengingat belajar di malam hari</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="notifLearn"><span class="slider"></span></label>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="t-title">🔊 Suara Notifikasi</div>
+        <div class="t-desc">Bunyi beep saat notifikasi muncul</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="notifSound" checked><span class="slider"></span></label>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" onclick="saveNotif()">💾 Simpan Notifikasi</button>
+      <button class="btn secondary" onclick="testNotif()">🔔 Test Notifikasi</button>
+    </div>
+  </div>
+
+  <!-- SECTION 4: PREFERENSI -->
+  <div class="card">
+    <h2><span class="icon">🎨</span> Preferensi</h2>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="t-title">🌙 Dark Mode</div>
+        <div class="t-desc">Tema gelap neural (default: on)</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="prefDark" checked><span class="slider"></span></label>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="t-title">🔊 Sound Effects</div>
+        <div class="t-desc">Suara efek tombol & interaksi</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="prefSound" checked><span class="slider"></span></label>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="t-title">✨ Animations</div>
+        <div class="t-desc">Animasi transisi & efek visual</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="prefAnim" checked><span class="slider"></span></label>
+    </div>
+
+    <button class="btn" onclick="savePrefs()">💾 Simpan Preferensi</button>
+  </div>
+
+  <!-- SECTION 5: DANGER ZONE -->
+  <div class="card danger">
+    <h2><span class="icon">⚠️</span> Danger Zone</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px">Aksi di bawah ini tidak dapat dibatalkan. Hati-hati!</p>
+
+    <div class="danger-item">
+      <div class="d-title">🔄 Reset Semua Progress</div>
+      <div class="d-desc">Hapus semua data progress (sleep, focus, memory, learn, chess) tapi tetap simpan akun & pengaturan.</div>
+      <button class="btn secondary" onclick="resetProgress()">Reset Progress</button>
+    </div>
+
+    <div class="danger-item">
+      <div class="d-title">🗑️ Reset Semua Data</div>
+      <div class="d-desc">Hapus SEMUA data SOMA dari localStorage. Akun, progress, pengaturan — semua hilang.</div>
+      <button class="btn danger" onclick="resetAllData()">Reset Semua Data</button>
+    </div>
+
+    <div class="danger-item">
+      <div class="d-title">🚪 Logout</div>
+      <div class="d-desc">Keluar dari sesi saat ini. Data tetap tersimpan di perangkat ini.</div>
+      <button class="btn danger" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="info-box">
+    💡 <strong>Tip:</strong> Data SOMA disimpan lokal di perangkat Bapak (localStorage). Tidak dikirim ke server manapun. Privasi Bapak terjaga.
+  </div>
+</div>
+
+<div class="footer">
+  Soma — Bangunkan kekuatan otak yang tidur • Dibuat dengan ❤️ untuk Pak Husni
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="notif-banner" id="notifBanner">
+  <div class="nb-icon" id="nbIcon">🔔</div>
+  <div class="nb-title" id="nbTitle">—</div>
+  <div class="nb-body" id="nbBody">—</div>
+</div>
+
+<script>
+/* ========================================
+   SOMA SETTINGS
+   ======================================== */
+
+/* ===== SESSION CHECK ===== */
+var isDemo = false;
+(function() {
+  var params = new URLSearchParams(location.search);
+  var demo = params.get('demo') === '1';
+  if (demo) {
+    isDemo = true;
+    var badge = document.createElement('div');
+    badge.className = 'demo-badge';
+    badge.textContent = 'DEMO MODE';
+    document.body.appendChild(badge);
+  } else {
+    var session = localStorage.getItem('soma_session');
+    if (!session) {
+      location.href = 'login.html';
+      return;
+    }
+  }
+})();
+
+/* ===== HELPERS ===== */
+function showToast(msg, warn) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (warn ? ' warn' : '');
+  setTimeout(function() { t.classList.remove('show'); }, 2800);
+}
+
+function beep() {
+  try {
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 800;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.3);
+  } catch(e) {}
+}
+
+/* ===== AVATAR OPTIONS ===== */
+var AVATARS = ['🧠', '😴', '🌊', '🎯', '🧩', '♟️', '📖', '📊', '🧓', '👨', '🧔', '👴', '🤓', '😎', '🤲', '🌟'];
+var selectedAvatar = '🧠';
+
+function renderAvatarGrid() {
+  var grid = document.getElementById('avatarGrid');
+  grid.innerHTML = '';
+  AVATARS.forEach(function(a) {
+    var div = document.createElement('div');
+    div.className = 'avatar-opt' + (a === selectedAvatar ? ' selected' : '');
+    div.textContent = a;
+    div.onclick = function() {
+      selectedAvatar = a;
+      renderAvatarGrid();
+    };
+    grid.appendChild(div);
+  });
+}
+
+/* ===== PROFILE ===== */
+function loadProfile() {
+  var session = JSON.parse(localStorage.getItem('soma_session') || '{}');
+  var users = JSON.parse(localStorage.getItem('soma_users') || '[]');
+  var user = users.filter(function(u) { return u.id === session.userId; })[0] || {};
+
+  var name = user.name || session.name || 'Pak Husni';
+  var email = user.email || session.email || 'pak.husni@soma.app';
+  var avatar = user.avatar || session.avatar || '🧠';
+  selectedAvatar = avatar;
+
+  document.getElementById('profAvatar').textContent = avatar;
+  document.getElementById('profName').textContent = name;
+  document.getElementById('profEmail').textContent = email;
+  document.getElementById('editName').value = name;
+  document.getElementById('editEmail').value = email;
+
+  renderAvatarGrid();
+}
+
+function toggleEditForm() {
+  var form = document.getElementById('editForm');
+  form.classList.toggle('show');
+  if (form.classList.contains('show')) {
+    loadProfile();
+  }
+}
+
+function saveProfile() {
+  var name = document.getElementById('editName').value.trim();
+  var email = document.getElementById('editEmail').value.trim();
+  if (!name) { showToast('Nama tidak boleh kosong!', true); return; }
+
+  var session = JSON.parse(localStorage.getItem('soma_session') || '{}');
+  var users = JSON.parse(localStorage.getItem('soma_users') || '[]');
+  var user = users.filter(function(u) { return u.id === session.userId; })[0];
+
+  if (user) {
+    user.name = name;
+    user.email = email;
+    user.avatar = selectedAvatar;
+  } else {
+    /* if no user record, update session directly */
+    session.name = name;
+    session.email = email;
+    session.avatar = selectedAvatar;
+    localStorage.setItem('soma_session', JSON.stringify(session));
+  }
+
+  localStorage.setItem('soma_users', JSON.stringify(users));
+  loadProfile();
+  document.getElementById('editForm').classList.remove('show');
+  showToast('✓ Profil disimpan!');
+}
+
+/* ===== TARGETS ===== */
+function loadTargets() {
+  var t = JSON.parse(localStorage.getItem('soma_targets') || '{}');
+  var sleep = t.sleep || 7.5;
+  var focus = t.focus || 4;
+  var memory = t.memory || 2;
+  var learn = t.learn || 30;
+
+  document.getElementById('targetSleep').value = sleep;
+  document.getElementById('targetSleepVal').textContent = parseFloat(sleep).toFixed(1) + ' jam';
+  document.getElementById('targetFocus').value = focus;
+  document.getElementById('targetMemory').value = memory;
+  document.getElementById('targetLearn').value = learn;
+}
+
+document.getElementById('targetSleep').addEventListener('input', function() {
+  document.getElementById('targetSleepVal').textContent = parseFloat(this.value).toFixed(1) + ' jam';
+});
+
+function saveTargets() {
+  var t = {
+    sleep: parseFloat(document.getElementById('targetSleep').value),
+    focus: parseInt(document.getElementById('targetFocus').value),
+    memory: parseInt(document.getElementById('targetMemory').value),
+    learn: parseInt(document.getElementById('targetLearn').value)
+  };
+  localStorage.setItem('soma_targets', JSON.stringify(t));
+  showToast('✓ Target disimpan!');
+}
+
+/* ===== NOTIFICATION ===== */
+function loadNotif() {
+  var n = JSON.parse(localStorage.getItem('soma_notify_config') || '{}');
+  document.getElementById('notifSleep').checked = n.sleep !== false;
+  document.getElementById('notifFocus').checked = n.focus !== false;
+  document.getElementById('notifMemory').checked = n.memory === true;
+  document.getElementById('notifLearn').checked = n.learn === true;
+  document.getElementById('notifSound').checked = n.sound !== false;
+}
+
+function saveNotif() {
+  var n = {
+    sleep: document.getElementById('notifSleep').checked,
+    focus: document.getElementById('notifFocus').checked,
+    memory: document.getElementById('notifMemory').checked,
+    learn: document.getElementById('notifLearn').checked,
+    sound: document.getElementById('notifSound').checked
+  };
+  localStorage.setItem('soma_notify_config', JSON.stringify(n));
+  showToast('✓ Notifikasi disimpan!');
+}
+
+function testNotif() {
+  var n = JSON.parse(localStorage.getItem('soma_notify_config') || '{}');
+  var sound = n.sound !== false;
+  var banner = document.getElementById('notifBanner');
+  document.getElementById('nbIcon').textContent = '😴';
+  document.getElementById('nbTitle').textContent = 'Reminder Tidur';
+  document.getElementById('nbBody').textContent = 'Saatnya persiapan tidur, Pak. Matikan HP dan relaksasi 15 menit. 🌙';
+  banner.classList.add('show');
+  if (sound) beep();
+  setTimeout(function() { banner.classList.remove('show'); }, 4000);
+}
+
+/* ===== PREFERENCES ===== */
+function loadPrefs() {
+  var p = JSON.parse(localStorage.getItem('soma_preferences') || '{}');
+  document.getElementById('prefDark').checked = p.dark !== false;
+  document.getElementById('prefSound').checked = p.sound !== false;
+  document.getElementById('prefAnim').checked = p.anim !== false;
+
+  /* apply animation pref */
+  if (p.anim === false) {
+    document.body.style.setProperty('--drift', 'none');
+    var style = document.createElement('style');
+    style.textContent = 'body::before{animation:none!important} *{transition:none!important}';
+    style.id = 'noAnimStyle';
+    document.head.appendChild(style);
+  }
+}
+
+function savePrefs() {
+  var p = {
+    dark: document.getElementById('prefDark').checked,
+    sound: document.getElementById('prefSound').checked,
+    anim: document.getElementById('prefAnim').checked
+  };
+  localStorage.setItem('soma_preferences', JSON.stringify(p));
+
+  /* apply immediately */
+  if (!p.anim) {
+    if (!document.getElementById('noAnimStyle')) {
+      var style = document.createElement('style');
+      style.textContent = 'body::before{animation:none!important} *{transition:none!important}';
+      style.id = 'noAnimStyle';
+      document.head.appendChild(style);
+    }
+  } else {
+    var ns = document.getElementById('noAnimStyle');
+    if (ns) ns.remove();
+  }
+
+  showToast('✓ Preferensi disimpan!');
+}
+
+/* ===== DANGER ZONE ===== */
+function resetProgress() {
+  if (!confirm('Yakin reset SEMUA progress? Data tidak bisa dikembalikan.')) return;
+  var keysToKeep = ['soma_session', 'soma_users', 'soma_targets', 'soma_notify_config', 'soma_preferences'];
+  var allKeys = [];
+  for (var i = 0; i < localStorage.length; i++) {
+    var k = localStorage.key(i);
+    if (k && k.indexOf('soma_') === 0 && keysToKeep.indexOf(k) === -1) allKeys.push(k);
+  }
+  allKeys.forEach(function(k) { localStorage.removeItem(k); });
+  showToast('✓ Progress direset. Akun & pengaturan tetap aman.', true);
+  setTimeout(function() { location.reload(); }, 1500);
+}
+
+function resetAllData() {
+  if (!confirm('PERINGATAN: SEMUA data SOMA akan dihapus termasuk akun. Yakin?')) return;
+  if (!confirm('Konfirmasi terakhir: Hapus semua data SOMA?')) return;
+  for (var i = localStorage.length - 1; i >= 0; i--) {
+    var k = localStorage.key(i);
+    if (k && k.indexOf('soma_') === 0) localStorage.removeItem(k);
+  }
+  showToast('Semua data dihapus. Mengalihkan ke login...', true);
+  setTimeout(function() { location.href = 'login.html'; }, 2000);
+}
+
+function logout() {
+  localStorage.removeItem('soma_session');
+  showToast('Berhasil logout. Sampai jumpa, Pak! 👋');
+  setTimeout(function() { location.href = 'login.html'; }, 1500);
+}
+
+/* ===== INIT ===== */
+loadProfile();
+loadTargets();
+loadNotif();
+loadPrefs();
+</script>
+</body>
+</html>

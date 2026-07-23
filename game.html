@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOMA — Game Portal</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-deep:#0f172a;--bg-mid:#1e3a5f;--bg-card:rgba(30,41,59,.6);
+  --card:#1e293b;--teal:#0d9488;--teal-light:#2dd4bf;--soft-blue:#38bdf8;
+  --lavender:#a5b4fc;--lavender-light:#c7d2fe;--purple:#8b5cf6;--purple-light:#c4b5fd;
+  --text:#e2e8f0;--text-muted:#94a3b8;--white:#f8fafc;
+  --glow-teal:0 0 20px rgba(13,148,136,.4);--glow-lav:0 0 30px rgba(165,180,252,.2);
+  --glow-purple:0 0 20px rgba(139,92,246,.3);
+}
+body{
+  font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
+  background:radial-gradient(ellipse at top,#1e3a5f 0%,#0f172a 60%);
+  color:var(--text);min-height:100vh;overflow-x:hidden;
+}
+#neural-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:.4}
+.main-wrap{position:relative;z-index:1}
+
+/* NAVBAR */
+nav{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;
+  padding:.8rem 2rem;backdrop-filter:blur(10px);
+  background:rgba(15,23,42,.7);border-bottom:1px solid rgba(165,180,252,.1);
+  position:sticky;top:0;z-index:100;
+}
+.nav-logo{font-size:1.4rem;font-weight:800;letter-spacing:3px;color:var(--lavender);text-decoration:none;text-shadow:0 0 20px rgba(165,180,252,.3)}
+.nav-menu{display:flex;gap:.3rem;flex-wrap:wrap;align-items:center}
+.nav-menu a{
+  color:var(--text-muted);text-decoration:none;font-size:.85rem;padding:.5rem .8rem;
+  border-radius:8px;transition:.3s;font-weight:500;
+}
+.nav-menu a:hover,.nav-menu a.active{color:var(--teal-light);background:rgba(13,148,136,.1)}
+.nav-menu a.active{color:var(--teal-light);font-weight:700}
+.btn-logout{
+  color:#fca5a5 !important;border:1px solid rgba(239,68,68,.2);border-radius:8px;
+}
+
+/* HEADER */
+.header{text-align:center;padding:2.5rem 2rem 1.5rem}
+.header h1{font-size:3rem;font-weight:900;letter-spacing:8px;color:var(--lavender);text-shadow:0 0 30px rgba(165,180,252,.4)}
+.header .tagline{font-size:1rem;color:var(--text-muted);margin-top:.5rem}
+.header .datetime{font-size:.85rem;color:var(--teal-light);margin-top:.8rem;letter-spacing:1px}
+
+/* GAME PORTAL GRID */
+.portal-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;
+  max-width:1100px;margin:0 auto;padding:2rem 1.5rem 4rem;
+}
+.portal-card{
+  background:var(--bg-card);border:1px solid rgba(165,180,252,.15);border-radius:20px;
+  padding:3rem 2rem;text-align:center;text-decoration:none;
+  backdrop-filter:blur(10px);transition:.35s cubic-bezier(.4,0,.2,1);
+  position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:1rem;
+}
+.portal-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at center,rgba(13,148,136,.08),transparent 70%);
+  opacity:0;transition:.35s;
+}
+.portal-card:hover::before{opacity:1}
+.portal-card:hover{
+  border-color:var(--teal);box-shadow:var(--glow-teal),0 8px 40px rgba(0,0,0,.3);
+  transform:translateY(-6px) scale(1.02);
+}
+.portal-icon{
+  font-size:4.5rem;line-height:1;
+  filter:drop-shadow(0 0 15px rgba(165,180,252,.3));
+  transition:.35s;
+}
+.portal-card:hover .portal-icon{
+  transform:scale(1.15);
+  filter:drop-shadow(0 0 25px rgba(45,212,191,.5));
+}
+.portal-title{font-size:1.4rem;font-weight:800;color:var(--lavender-light);letter-spacing:1px}
+.portal-desc{font-size:.9rem;color:var(--text-muted);line-height:1.6;max-width:260px}
+.portal-cta{
+  margin-top:.5rem;padding:.6rem 1.8rem;border-radius:12px;font-size:.85rem;font-weight:700;
+  background:linear-gradient(135deg,var(--teal),var(--teal-light));color:var(--white);
+  box-shadow:0 4px 15px rgba(13,148,136,.3);transition:.3s;
+}
+.portal-card:hover .portal-cta{box-shadow:var(--glow-teal);transform:translateY(-2px)}
+
+/* FOOTER */
+.footer{
+  text-align:center;padding:2rem 1.5rem;color:var(--text-muted);font-size:.85rem;
+  border-top:1px solid rgba(165,180,252,.08);
+}
+.footer .heart{color:var(--teal-light)}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .portal-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:640px){
+  nav{padding:.8rem 1rem}
+  .nav-menu{gap:0}
+  .nav-menu a{font-size:.75rem;padding:.4rem .5rem}
+  .header h1{font-size:2rem;letter-spacing:4px}
+  .portal-grid{grid-template-columns:1fr;gap:1.5rem;padding:1.5rem 1rem 3rem}
+  .portal-card{padding:2rem 1.5rem}
+  .portal-icon{font-size:3.5rem}
+}
+</style>
+</head>
+<body>
+<canvas id="neural-canvas"></canvas>
+<div class="main-wrap">
+
+<!-- NAVBAR -->
+<nav>
+  <a href="dashboard.html" class="nav-logo">SOMA</a>
+  <div class="nav-menu">
+    <a href="dashboard.html">🧠 Dashboard</a>
+    <a href="sleep.html">😴 Tidur</a>
+    <a href="relax.html">🌊 Relaksasi</a>
+    <a href="game.html" class="active">🎮 Game</a>
+    <a href="learn.html">📖 Belajar</a>
+    <a href="settings.html">⚙️ Settings</a>
+    <a href="#" id="logoutBtn" class="btn-logout">Keluar</a>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>GAME</h1>
+  <p class="tagline">Latih otak Anda sambil bermain</p>
+  <p class="datetime" id="liveDateTime"></p>
+</div>
+
+<!-- GAME PORTAL -->
+<div class="portal-grid">
+  <a href="memory.html" class="portal-card">
+    <div class="portal-icon">🧩</div>
+    <div class="portal-title">Memory Trainer</div>
+    <div class="portal-desc">Latih daya ingat dengan word recall, sequence, dan pattern matching</div>
+    <div class="portal-cta">Mainkan →</div>
+  </a>
+
+  <a href="chess.html" class="portal-card">
+    <div class="portal-icon">♟️</div>
+    <div class="portal-title">Catur</div>
+    <div class="portal-desc">Asah strategi dan perencanaan dengan permainan catur klasik</div>
+    <div class="portal-cta">Mainkan →</div>
+  </a>
+
+  <a href="focus.html" class="portal-card">
+    <div class="portal-icon">🎯</div>
+    <div class="portal-title">Focus Training</div>
+    <div class="portal-desc">Tingkatkan konsentrasi dengan terapi fokus yang terarah</div>
+    <div class="portal-cta">Mainkan →</div>
+  </a>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  Soma — Bangunkan kekuatan otak yang tidur &bull; Dibuat dengan <span class="heart">&#10084;</span> untuk Pak Husni
+</div>
+
+</div>
+
+<script>
+/* SESSION CHECK + DEMO */
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  var isDemo = params.get('demo') === '1';
+  var session = localStorage.getItem('soma_session');
+  if(!session && !isDemo){
+    window.location.href = 'login.html';
+    return;
+  }
+})();
+
+/* LIVE DATETIME */
+(function(){
+  var el = document.getElementById('liveDateTime');
+  function update(){
+    var d = new Date();
+    var days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+    var months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    el.textContent = days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear() + ' • ' + d.toLocaleTimeString('id-ID');
+  }
+  update();
+  setInterval(update, 1000);
+})();
+
+/* LOGOUT */
+document.getElementById('logoutBtn').addEventListener('click', function(e){
+  e.preventDefault();
+  localStorage.removeItem('soma_session');
+  window.location.href = 'login.html';
+});
+
+/* NEURAL CANVAS BACKGROUND */
+(function(){
+  var canvas = document.getElementById('neural-canvas');
+  var ctx = canvas.getContext('2d');
+  var nodes = [];
+  var NODE_COUNT = 60;
+
+  function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  for(var i=0; i<NODE_COUNT; i++){
+    nodes.push({
+      x: Math.random()*canvas.width,
+      y: Math.random()*canvas.height,
+      vx: (Math.random()-.5)*.3,
+      vy: (Math.random()-.5)*.3,
+      r: Math.random()*2+1
+    });
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for(var i=0; i<nodes.length; i++){
+      var n = nodes[i];
+      n.x += n.vx; n.y += n.vy;
+      if(n.x<0||n.x>canvas.width) n.vx*=-1;
+      if(n.y<0||n.y>canvas.height) n.vy*=-1;
+      ctx.beginPath();
+      ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+      ctx.fillStyle = 'rgba(165,180,252,.5)';
+      ctx.fill();
+      for(var j=i+1; j<nodes.length; j++){
+        var m = nodes[j];
+        var dx = n.x-m.x, dy = n.y-m.y;
+        var dist = Math.sqrt(dx*dx+dy*dy);
+        if(dist<130){
+          ctx.beginPath();
+          ctx.moveTo(n.x,n.y);
+          ctx.lineTo(m.x,m.y);
+          ctx.strokeStyle = 'rgba(45,212,191,'+(1-dist/130)*.2+')';
+          ctx.lineWidth = .5;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+</body>
+</html>
