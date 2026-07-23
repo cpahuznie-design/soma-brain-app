@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOMA — Catur Multiplayer Online</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-deep:#0f172a;--bg-mid:#1e3a5f;--bg-card:rgba(30,58,95,.35);
+  --card:#1e293b;--teal:#0d9488;--teal-light:#2dd4bf;--lavender:#a5b4fc;--lavender-light:#c7d2fe;
+  --purple:#8b5cf6;--blue:#38bdf8;
+  --text:#e2e8f0;--text-muted:#94a3b8;--white:#f8fafc;
+  --glow-teal:0 0 20px rgba(13,148,136,.4);--glow-lav:0 0 30px rgba(165,180,252,.2);
+  --glow-board:0 0 40px rgba(13,148,136,.25);
+}
+body{
+  font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
+  background:radial-gradient(ellipse at top,#1e3a5f 0%,#0f172a 60%);
+  color:var(--text);min-height:100vh;overflow-x:hidden;
+}
+#neural-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:.4}
+.main-wrap{position:relative;z-index:1}
+
+/* NAVBAR */
+nav{
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;
+  padding:.8rem 2rem;backdrop-filter:blur(10px);
+  background:rgba(15,23,42,.7);border-bottom:1px solid rgba(165,180,252,.1);
+  position:sticky;top:0;z-index:100;
+}
+.nav-logo{font-size:1.4rem;font-weight:800;letter-spacing:3px;color:var(--lavender);text-decoration:none;text-shadow:0 0 20px rgba(165,180,252,.3)}
+.nav-menu{display:flex;gap:.3rem;flex-wrap:wrap;align-items:center}
+.nav-menu a{
+  color:var(--text-muted);text-decoration:none;font-size:.85rem;padding:.5rem .8rem;
+  border-radius:8px;transition:.3s;font-weight:500;
+}
+.nav-menu a:hover,.nav-menu a.active{color:var(--teal-light);background:rgba(13,148,136,.1)}
+.nav-menu a.active{color:var(--teal-light)}
+.btn-logout{color:#fca5a5 !important;border:1px solid rgba(239,68,68,.2);border-radius:8px}
+
+/* HEADER */
+.header{text-align:center;padding:2.5rem 2rem 1.5rem}
+.header h1{font-size:2.5rem;font-weight:900;letter-spacing:6px;color:var(--lavender);text-shadow:0 0 30px rgba(165,180,252,.4)}
+.header .tagline{font-size:1rem;color:var(--text-muted);margin-top:.5rem}
+.header .datetime{font-size:.85rem;color:var(--teal-light);margin-top:.8rem;letter-spacing:1px}
+
+/* SECTIONS */
+.section{max-width:1100px;margin:0 auto;padding:1.5rem 1.5rem}
+.section-title{font-size:1.3rem;color:var(--lavender);margin-bottom:1.5rem;font-weight:600}
+
+/* ======== LOBBY ======== */
+.lobby-container{max-width:600px;margin:0 auto;padding:1rem 1.5rem 3rem}
+.lobby-card{
+  background:var(--bg-card);border:1px solid rgba(165,180,252,.15);border-radius:20px;
+  padding:2.5rem 2rem;backdrop-filter:blur(10px);text-align:center;
+  box-shadow:0 0 30px rgba(13,148,136,.15);
+}
+.lobby-title{font-size:1.6rem;color:var(--lavender);font-weight:800;margin-bottom:.5rem}
+.lobby-subtitle{font-size:.9rem;color:var(--text-muted);margin-bottom:2rem}
+.lobby-buttons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+.lobby-btn{
+  padding:1.5rem 1rem;border:1px solid rgba(165,180,252,.2);border-radius:14px;
+  background:rgba(15,23,42,.4);color:var(--text);cursor:pointer;font-size:1rem;
+  font-weight:700;transition:.3s;display:flex;flex-direction:column;align-items:center;gap:.5rem;
+}
+.lobby-btn .btn-icon{font-size:2.5rem}
+.lobby-btn:hover{border-color:var(--teal);box-shadow:var(--glow-teal);transform:translateY(-3px)}
+.lobby-btn.primary{background:linear-gradient(135deg,rgba(13,148,136,.3),rgba(45,212,191,.15));border-color:var(--teal)}
+.lobby-btn.secondary{background:linear-gradient(135deg,rgba(165,180,252,.15),rgba(139,92,246,.1));border-color:var(--lavender)}
+.lobby-btn.secondary:hover{border-color:var(--lavender);box-shadow:var(--glow-lav)}
+
+/* ROOM CODE DISPLAY */
+.room-code-display{margin:1.5rem 0}
+.room-code-label{font-size:.85rem;color:var(--text-muted);margin-bottom:.5rem}
+.room-code-box{
+  font-family:'Courier New',monospace;font-size:2.5rem;font-weight:900;
+  letter-spacing:12px;color:var(--teal-light);
+  background:rgba(15,23,42,.6);border:2px solid var(--teal);border-radius:14px;
+  padding:1rem 1.5rem;display:inline-block;box-shadow:var(--glow-teal);
+  text-shadow:0 0 20px rgba(45,212,191,.5);
+}
+.room-code-actions{display:flex;gap:.5rem;justify-content:center;margin-top:1rem;flex-wrap:wrap}
+.action-btn{
+  padding:.6rem 1.2rem;border:1px solid rgba(165,180,252,.2);border-radius:8px;
+  background:rgba(15,23,42,.4);color:var(--text);cursor:pointer;font-size:.85rem;
+  font-weight:600;transition:.3s;display:inline-flex;align-items:center;gap:.4rem;
+}
+.action-btn:hover{border-color:var(--teal);color:var(--teal-light);box-shadow:var(--glow-teal)}
+.action-btn.whatsapp{background:rgba(37,211,102,.15);border-color:rgba(37,211,102,.4);color:#25d366}
+.action-btn.whatsapp:hover{background:rgba(37,211,102,.25);box-shadow:0 0 15px rgba(37,211,102,.3)}
+
+/* JOIN FORM */
+.join-form{display:flex;gap:.5rem;margin-bottom:1rem}
+.join-form input{
+  flex:1;padding:.8rem 1rem;background:rgba(15,23,42,.6);border:1px solid rgba(165,180,252,.2);
+  border-radius:8px;color:var(--text);font-size:1.1rem;font-family:'Courier New',monospace;
+  letter-spacing:4px;text-transform:uppercase;text-align:center;transition:.3s;
+}
+.join-form input:focus{outline:none;border-color:var(--teal);box-shadow:var(--glow-teal)}
+.join-form input::placeholder{letter-spacing:2px;font-size:.85rem;color:var(--text-muted)}
+
+/* COLOR PICK */
+.color-pick{display:flex;gap:.5rem;margin-bottom:1rem}
+.color-btn{
+  flex:1;padding:.7rem;border:1px solid rgba(165,180,252,.2);border-radius:8px;
+  background:transparent;color:var(--text-muted);cursor:pointer;font-size:.85rem;transition:.3s;font-weight:600;
+}
+.color-btn.active{background:rgba(165,180,252,.15);border-color:var(--lavender);color:var(--lavender-light)}
+
+/* CONNECTION STATUS */
+.conn-status{
+  display:flex;align-items:center;justify-content:center;gap:.5rem;
+  padding:.6rem;border-radius:8px;margin-bottom:1rem;font-size:.85rem;font-weight:600;
+}
+.conn-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.conn-dot.online{background:#2dd4bf;box-shadow:0 0 10px rgba(45,212,191,.6);animation:pulse 2s infinite}
+.conn-dot.offline{background:#fca5a5;box-shadow:0 0 8px rgba(252,165,165,.4)}
+.conn-dot.waiting{background:#fbbf24;box-shadow:0 0 8px rgba(251,191,36,.4);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.status-text{font-size:.9rem;color:var(--text-muted);text-align:center;padding:.4rem;border-radius:6px;margin-bottom:1rem}
+
+/* HIDDEN */
+.hidden{display:none !important}
+
+/* ======== GAME LAYOUT ======== */
+.chess-layout{
+  display:grid;grid-template-columns:auto 1fr;gap:2rem;align-items:start;
+}
+.board-wrap{
+  background:var(--bg-card);border:1px solid rgba(165,180,252,.15);border-radius:20px;
+  padding:1.5rem;backdrop-filter:blur(10px);box-shadow:var(--glow-board);
+}
+.board{
+  display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);
+  width:min(70vw,560px);height:min(70vw,560px);border-radius:8px;overflow:hidden;
+  box-shadow:0 0 30px rgba(13,148,136,.3),inset 0 0 0 2px rgba(165,180,252,.2);
+  position:relative;
+}
+.square{
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(28px,7vw,48px);cursor:pointer;position:relative;
+  transition:background .2s;user-select:none;line-height:1;
+}
+.square.light{background:rgba(30,58,95,.7)}
+.square.dark{background:rgba(13,148,136,.5)}
+.square.selected{background:rgba(165,180,252,.35) !important;box-shadow:inset 0 0 0 3px var(--lavender)}
+.square.valid-move::after{
+  content:'';position:absolute;width:28%;height:28%;border-radius:50%;
+  background:rgba(45,212,191,.5);box-shadow:0 0 12px rgba(45,212,191,.5);
+}
+.square.valid-capture::after{
+  content:'';position:absolute;width:70%;height:70%;border-radius:50%;
+  border:3px solid rgba(252,165,165,.7);background:transparent;box-shadow:0 0 12px rgba(252,165,165,.4);
+}
+.square.last-move{background:rgba(56,189,248,.2) !important}
+.square.check-square{box-shadow:inset 0 0 0 4px rgba(252,165,165,.8),0 0 20px rgba(252,165,165,.4)}
+.piece{
+  display:flex;align-items:center;justify-content:center;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));transition:transform .2s;
+}
+.piece.white{color:#f8fafc;text-shadow:0 0 8px rgba(255,255,255,.3),0 2px 4px rgba(0,0,0,.6)}
+.piece.black{color:#1a1a2e;text-shadow:0 0 8px rgba(0,0,0,.8),0 2px 4px rgba(0,0,0,.8)}
+.square:hover .piece{transform:scale(1.1)}
+
+/* SIDEBAR */
+.sidebar{display:flex;flex-direction:column;gap:1.5rem}
+.panel{
+  background:var(--bg-card);border:1px solid rgba(165,180,252,.12);border-radius:16px;
+  padding:1.5rem;backdrop-filter:blur(10px);
+}
+
+/* CONTROLS */
+.controls{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
+.ctrl-btn{
+  flex:1;padding:.6rem;border:1px solid rgba(165,180,252,.2);border-radius:8px;
+  background:rgba(15,23,42,.4);color:var(--text);cursor:pointer;font-size:.8rem;
+  transition:.3s;font-weight:600;min-width:80px;
+}
+.ctrl-btn:hover{border-color:var(--teal);color:var(--teal-light);box-shadow:var(--glow-teal)}
+.ctrl-btn:disabled{opacity:.4;cursor:not-allowed}
+.ctrl-btn.danger{border-color:rgba(239,68,68,.3);color:#fca5a5}
+.ctrl-btn.danger:hover{box-shadow:0 0 12px rgba(239,68,68,.3);border-color:#ef4444}
+
+/* TURN INDICATOR */
+.turn-indicator{
+  display:flex;align-items:center;gap:.5rem;font-size:1rem;font-weight:700;
+  padding:.6rem;border-radius:8px;margin-bottom:.5rem;
+}
+.turn-indicator.white-turn{background:rgba(248,250,252,.1);color:var(--white)}
+.turn-indicator.black-turn{background:rgba(15,23,42,.6);color:var(--lavender)}
+.turn-dot{width:14px;height:14px;border-radius:50%;box-shadow:0 0 8px currentColor}
+.turn-dot.white{background:#f8fafc}
+.turn-dot.black{background:#1a1a2e;border:1px solid #444}
+
+.status-text.check{color:#fca5a5;background:rgba(239,68,68,.1);font-weight:600}
+.status-text.checkmate{color:#fca5a5;background:rgba(239,68,68,.2);font-weight:700;font-size:1rem}
+.status-text.draw{color:var(--lavender);background:rgba(165,180,252,.1);font-weight:600}
+
+/* TIMERS */
+.timers{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem}
+.timer-box{
+  padding:.8rem;border-radius:8px;text-align:center;
+  border:1px solid rgba(165,180,252,.1);
+}
+.timer-box.active{border-color:var(--teal);box-shadow:var(--glow-teal)}
+.timer-label{font-size:.75rem;color:var(--text-muted);margin-bottom:.2rem}
+.timer-value{font-size:1.3rem;font-weight:700;color:var(--teal-light);font-variant-numeric:tabular-nums}
+.timer-box.black-timer .timer-value{color:var(--lavender-light)}
+
+/* MOVE LIST */
+.move-list-wrap{margin-bottom:1rem}
+.move-list-title{font-size:.85rem;color:var(--text-muted);margin-bottom:.5rem;font-weight:600}
+.move-list{
+  max-height:180px;overflow-y:auto;border:1px solid rgba(165,180,252,.1);
+  border-radius:8px;padding:.5rem;font-size:.8rem;font-family:'Courier New',monospace;
+}
+.move-row{display:grid;grid-template-columns:30px 1fr 1fr;gap:.5rem;padding:.2rem 0}
+.move-num{color:var(--text-muted)}
+.move-cell{color:var(--lavender-light)}
+.move-list::-webkit-scrollbar{width:6px}
+.move-list::-webkit-scrollbar-thumb{background:rgba(165,180,252,.2);border-radius:3px}
+
+/* CHAT */
+.chat-box{
+  border:1px solid rgba(165,180,252,.12);border-radius:8px;overflow:hidden;
+}
+.chat-messages{
+  max-height:150px;overflow-y:auto;padding:.6rem;font-size:.82rem;
+  display:flex;flex-direction:column;gap:.3rem;min-height:60px;
+}
+.chat-msg{padding:.3rem .6rem;border-radius:6px;max-width:85%;word-break:break-word}
+.chat-msg.own{align-self:flex-end;background:rgba(13,148,136,.2);color:var(--teal-light)}
+.chat-msg.peer{align-self:flex-start;background:rgba(165,180,252,.15);color:var(--lavender-light)}
+.chat-msg.sys{align-self:center;color:var(--text-muted);font-size:.75rem;font-style:italic}
+.chat-input-row{display:flex;gap:.3rem;padding:.4rem;border-top:1px solid rgba(165,180,252,.1)}
+.chat-input-row input{
+  flex:1;padding:.5rem .8rem;background:rgba(15,23,42,.6);border:1px solid rgba(165,180,252,.15);
+  border-radius:6px;color:var(--text);font-size:.82rem;
+}
+.chat-input-row input:focus{outline:none;border-color:var(--teal)}
+.chat-input-row button{
+  padding:.5rem .8rem;background:rgba(13,148,136,.2);border:1px solid var(--teal);
+  border-radius:6px;color:var(--teal-light);cursor:pointer;font-size:.8rem;font-weight:600;
+}
+.chat-input-row button:hover{background:rgba(13,148,136,.35)}
+.chat-messages::-webkit-scrollbar{width:5px}
+.chat-messages::-webkit-scrollbar-thumb{background:rgba(165,180,252,.2);border-radius:3px}
+
+/* MODAL */
+.modal-overlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);
+  display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px);
+}
+.modal-overlay.show{display:flex}
+.modal-box{
+  background:var(--bg-card);border:1px solid var(--lavender);border-radius:16px;
+  padding:2.5rem 2rem;text-align:center;box-shadow:var(--glow-lav);max-width:400px;
+}
+.modal-box h2{color:var(--lavender);margin-bottom:.5rem;font-size:1.5rem}
+.modal-box .result-icon{font-size:3rem;margin-bottom:1rem}
+.modal-box .result-detail{color:var(--text-muted);margin-bottom:1.5rem;font-size:.9rem}
+.modal-box .modal-actions{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}
+.modal-box .ctrl-btn{min-width:120px}
+
+/* PROMO MODAL */
+.promo-box h3{color:var(--lavender);margin-bottom:1rem}
+.promo-pieces{display:flex;gap:1rem;justify-content:center}
+.promo-piece{
+  font-size:3rem;cursor:pointer;padding:1rem;border-radius:12px;
+  background:rgba(15,23,42,.5);border:2px solid transparent;transition:.3s;
+}
+.promo-piece:hover{border-color:var(--teal);box-shadow:var(--glow-teal)}
+
+/* NOTIFICATION TOAST */
+.toast{
+  position:fixed;top:80px;right:20px;z-index:300;
+  background:rgba(15,23,42,.95);border:1px solid var(--teal);border-radius:10px;
+  padding:1rem 1.5rem;color:var(--text);font-size:.9rem;box-shadow:var(--glow-teal);
+  transform:translateX(400px);transition:transform .3s;max-width:320px;
+}
+.toast.show{transform:translateX(0)}
+.toast.warn{border-color:#fbbf24;box-shadow:0 0 15px rgba(251,191,36,.3)}
+.toast.error{border-color:#fca5a5;box-shadow:0 0 15px rgba(252,165,165,.3)}
+
+/* FOOTER */
+footer{
+  text-align:center;padding:2rem;background:rgba(15,23,42,.8);
+  border-top:1px solid rgba(165,180,252,.1);color:var(--text-muted);font-size:.9rem;
+}
+footer .heart{color:var(--teal-light)}
+
+/* PIECE ANIMATION */
+@keyframes pieceMove{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.25);filter:drop-shadow(0 0 12px rgba(45,212,191,.6))}
+  100%{transform:scale(1)}
+}
+.piece.moving{animation:pieceMove .3s ease}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .chess-layout{grid-template-columns:1fr}
+  .board{width:min(90vw,450px);height:min(90vw,450px);margin:0 auto}
+  .board-wrap{text-align:center}
+}
+@media(max-width:600px){
+  nav{padding:.8rem 1rem}
+  .nav-menu{gap:0}
+  .nav-menu a{font-size:.7rem;padding:.4rem .4rem}
+  .header h1{font-size:1.8rem;letter-spacing:4px}
+  .section{padding:1.5rem 1rem}
+  .board{width:min(95vw,380px);height:min(95vw,380px)}
+  .square{font-size:clamp(24px,8vw,40px)}
+  .lobby-buttons{grid-template-columns:1fr}
+  .room-code-box{font-size:2rem;letter-spacing:8px}
+  .ctrl-btn{font-size:.75rem}
+}
+</style>
+</head>
+<body>
+<canvas id="neural-canvas"></canvas>
+<div class="main-wrap">
+
+<!-- NAVBAR -->
+<nav>
+  <a href="dashboard.html" class="nav-logo">SOMA</a>
+  <div class="nav-menu">
+    <a href="dashboard.html">🧠 Dashboard</a>
+    <a href="sleep.html">😴 Tidur</a>
+    <a href="relax.html">🌊 Relaksasi</a>
+    <a href="game.html" class="active">🎮 Game</a>
+    <a href="learn.html">📖 Belajar</a>
+    <a href="settings.html">⚙️ Settings</a>
+    <a href="#" id="logoutBtn" class="btn-logout">Keluar</a>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>CATUR ONLINE</h1>
+  <p class="tagline">Catur Multiplayer Real-time — Main dengan teman via Room Code</p>
+  <p class="datetime" id="liveDateTime"></p>
+</div>
+
+<!-- ======== LOBBY SCREEN ======== -->
+<div id="lobbyScreen">
+  <div class="lobby-container">
+    <div class="lobby-card">
+      <div class="lobby-title">♟️ Catur Multiplayer Online</div>
+      <div class="lobby-subtitle">Buat room atau masuk dengan kode dari teman Anda</div>
+
+      <!-- CREATE / JOIN BUTTONS -->
+      <div class="lobby-buttons" id="lobbyButtons">
+        <button class="lobby-btn primary" onclick="showCreateRoom()">
+          <span class="btn-icon">🏠</span>
+          <span>Buat Room</span>
+        </button>
+        <button class="lobby-btn secondary" onclick="showJoinRoom()">
+          <span class="btn-icon">🚪</span>
+          <span>Masuk Room</span>
+        </button>
+      </div>
+
+      <!-- CREATE ROOM PANEL -->
+      <div id="createPanel" class="hidden">
+        <div class="color-pick">
+          <button class="color-btn active" id="hostColorWhite" onclick="setHostColor('white')">⚪ Saya Putih</button>
+          <button class="color-btn" id="hostColorBlack" onclick="setHostColor('black')">⚫ Saya Hitam</button>
+        </div>
+        <button class="action-btn" style="width:100%;margin-bottom:1rem;padding:.8rem" onclick="createRoom()">
+          🎲 Generate Kode Room
+        </button>
+      </div>
+
+      <!-- ROOM CREATED DISPLAY -->
+      <div id="roomCreatedDisplay" class="hidden">
+        <div class="room-code-display">
+          <div class="room-code-label">Kode Room Anda — Share ke teman:</div>
+          <div class="room-code-box" id="roomCodeDisplay">------</div>
+        </div>
+        <div class="room-code-actions">
+          <button class="action-btn" onclick="copyRoomCode()">📋 Salin Kode</button>
+          <button class="action-btn whatsapp" onclick="shareWhatsApp()">📱 Share WhatsApp</button>
+        </div>
+        <div class="conn-status" id="hostConnStatus">
+          <div class="conn-dot waiting"></div>
+          <span>Menunggu lawan bergabung...</span>
+        </div>
+        <button class="action-btn" style="margin-top:.5rem" onclick="cancelHost()">← Kembali</button>
+      </div>
+
+      <!-- JOIN ROOM PANEL -->
+      <div id="joinPanel" class="hidden">
+        <div class="join-form">
+          <input type="text" id="joinCodeInput" placeholder="MASUKKAN KODE 6 KARAKTER" maxlength="6" oninput="this.value=this.value.toUpperCase()">
+        </div>
+        <button class="action-btn" style="width:100%;margin-bottom:1rem;padding:.8rem" onclick="joinRoom()">
+          🔗 Gabung Room
+        </button>
+        <div class="conn-status" id="joinConnStatus" style="display:none">
+          <div class="conn-dot waiting"></div>
+          <span id="joinConnText">Menghubungkan...</span>
+        </div>
+        <button class="action-btn" style="margin-top:.5rem" onclick="cancelJoin()">← Kembali</button>
+      </div>
+
+      <!-- INFO -->
+      <div style="margin-top:1.5rem;padding:1rem;background:rgba(15,23,42,.4);border-radius:10px;text-align:left;font-size:.8rem;color:var(--text-muted);line-height:1.6">
+        <strong style="color:var(--lavender-light)">Cara bermain:</strong><br>
+        1. Host klik <strong>Buat Room</strong> → dapat kode unik<br>
+        2. Share kode via WhatsApp ke teman<br>
+        3. Teman buka SOMA → <strong>Masuk Room</strong> → input kode<br>
+        4. Langsung main real-time! Host = Putih, Tamu = Hitam
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== GAME SCREEN ======== -->
+<div id="gameScreen" class="hidden">
+  <div class="section">
+    <!-- TOP BAR: Room info + connection -->
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
+      <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+        <div style="font-family:'Courier New',monospace;font-size:1.2rem;font-weight:700;color:var(--teal-light);letter-spacing:4px">
+          Room: <span id="gameRoomCode">------</span>
+        </div>
+        <div class="conn-status" style="margin:0;padding:.3rem .6rem">
+          <div class="conn-dot online" id="gameConnDot"></div>
+          <span id="gameConnText">Online</span>
+        </div>
+      </div>
+      <button class="action-btn" onclick="leaveGame()">← Keluar ke Lobby</button>
+    </div>
+
+    <div class="chess-layout">
+      <!-- BOARD -->
+      <div class="board-wrap">
+        <div class="board" id="board"></div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <div class="panel">
+          <!-- CONTROLS -->
+          <div class="controls">
+            <button class="ctrl-btn" onclick="offerDraw()">🤝 Draw</button>
+            <button class="ctrl-btn danger" onclick="resignGame()">🏳️ Resign</button>
+            <button class="ctrl-btn" onclick="requestRematch()">🔄 Rematch</button>
+          </div>
+
+          <!-- STATUS -->
+          <div class="turn-indicator white-turn" id="turnIndicator">
+            <div class="turn-dot white"></div>
+            <span id="turnText">Giliran Putih</span>
+          </div>
+          <div class="status-text" id="statusText">Menunggu langkah pertama...</div>
+
+          <!-- TIMERS -->
+          <div class="timers">
+            <div class="timer-box active" id="whiteTimerBox">
+              <div class="timer-label">⚪ Putih</div>
+              <div class="timer-value" id="whiteTimer">0:00</div>
+            </div>
+            <div class="timer-box black-timer" id="blackTimerBox">
+              <div class="timer-label">⚫ Hitam</div>
+              <div class="timer-value" id="blackTimer">0:00</div>
+            </div>
+          </div>
+
+          <!-- MOVE LIST -->
+          <div class="move-list-wrap">
+            <div class="move-list-title">📜 Move List</div>
+            <div class="move-list" id="moveList"><div style="color:var(--text-muted);text-align:center;padding:1rem">Belum ada langkah...</div></div>
+          </div>
+        </div>
+
+        <!-- CHAT -->
+        <div class="panel">
+          <div class="move-list-title">💬 Chat</div>
+          <div class="chat-box">
+            <div class="chat-messages" id="chatMessages">
+              <div class="chat-msg sys">Terhubung dengan lawan. Selamat bermain!</div>
+            </div>
+            <div class="chat-input-row">
+              <input type="text" id="chatInput" placeholder="Ketik pesan..." onkeypress="if(event.key==='Enter')sendChat()">
+              <button onclick="sendChat()">Kirim</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  Soma — Bangunkan kekuatan otak yang tidur &bull; Dibuat dengan <span class="heart">&#10084;</span> untuk Pak Husni
+</footer>
+
+</div>
+
+<!-- PROMOTION MODAL -->
+<div class="modal-overlay" id="promoModal">
+  <div class="modal-box promo-box">
+    <h3>Promosi Pion — Pilih Bidak</h3>
+    <div class="promo-pieces" id="promoPieces"></div>
+  </div>
+</div>
+
+<!-- END GAME MODAL -->
+<div class="modal-overlay" id="endGameModal">
+  <div class="modal-box">
+    <div class="result-icon" id="endGameIcon">🏆</div>
+    <h2 id="endGameTitle">Menang!</h2>
+    <div class="result-detail" id="endGameDetail"></div>
+    <div class="modal-actions">
+      <button class="ctrl-btn" onclick="doRematch()">🔄 Main Lagi</button>
+      <button class="ctrl-btn" onclick="backToLobby()">🏠 Kembali ke Lobby</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- PeerJS CDN -->
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+/* ============================================================
+   SOMA CATUR MULTIPLAYER ONLINE
+   Chess Engine (reused) + PeerJS Multiplayer Sync
+   ============================================================ */
+
+/* ---------- CONSTANTS ---------- */
+var PIECE_UNICODE = {
+  'wK':'♔','wQ':'♕','wR':'♖','wB':'♗','wN':'♘','wP':'♙',
+  'bK':'♚','bQ':'♛','bR':'♜','bB':'♝','bN':'♞','bP':'♟'
+};
+var PIECE_LETTERS = {P:'',N:'N',B:'B',R:'R',Q:'Q',K:'K'};
+var FILES = ['a','b','c','d','e','f','g','h'];
+
+/* ---------- GAME STATE ---------- */
+var board = [];
+var turn = 'w';
+var selected = null;
+var validMoves = [];
+var moveHistory = [];
+var castlingRights = {wK:true,wQ:true,bK:true,bQ:true};
+var enPassantTarget = null;
+var halfMoveClock = 0;
+var fullMoveNumber = 1;
+var gameActive = false;
+var pendingPromotion = null;
+var lastMove = null;
+var whiteTime = 0;
+var blackTime = 0;
+var timerInterval = null;
+
+/* ---------- MULTIPLAYER STATE ---------- */
+var peer = null;
+var conn = null;
+var isHost = false;
+var roomCode = '';
+var myColor = 'w';      /* 'w' or 'b' */
+var hostColorChoice = 'white'; /* host's preferred color */
+var peerConnected = false;
+var rematchRequested = false;
+var peerRematchRequested = false;
+var drawOfferedByMe = false;
+var drawOfferedByPeer = false;
+var pendingPromotionCallback = null;
+
+var SOMA_URL = 'https://cpahuznie-design.github.io/soma-brain-app/';
+
+/* ---------- INIT BOARD ---------- */
+function initBoard(){
+  board = [
+    ['bR','bN','bB','bQ','bK','bB','bN','bR'],
+    ['bP','bP','bP','bP','bP','bP','bP','bP'],
+    [null,null,null,null,null,null,null,null],
+    [null,null,null,null,null,null,null,null],
+    [null,null,null,null,null,null,null,null],
+    [null,null,null,null,null,null,null,null],
+    ['wP','wP','wP','wP','wP','wP','wP','wP'],
+    ['wR','wN','wB','wQ','wK','wB','wN','wR']
+  ];
+  turn='w';selected=null;validMoves=[];moveHistory=[];
+  castlingRights={wK:true,wQ:true,bK:true,bQ:true};
+  enPassantTarget=null;halfMoveClock=0;fullMoveNumber=1;
+  gameActive=true;pendingPromotion=null;lastMove=null;
+  whiteTime=0;blackTime=0;
+}
+
+/* ---------- BOARD HELPERS ---------- */
+function inBounds(r,c){return r>=0&&r<8&&c>=0&&c<8;}
+function findKing(color){
+  for(var r=0;r<8;r++)for(var c=0;c<8;c++){
+    if(board[r][c]===color+'K') return {r:r,c:c};
+  }
+  return null;
+}
+function findKingOnBoard(color,b){
+  for(var r=0;r<8;r++)for(var c=0;c<8;c++){
+    if(b[r][c]===color+'K')return{r:r,c:c};
+  }
+  return null;
+}
+function cloneBoard(b){
+  var nb=[];
+  for(var r=0;r<8;r++){nb[r]=b[r].slice();}
+  return nb;
+}
+
+/* ---------- MOVE GENERATION ---------- */
+function getPseudoMoves(r,c,b,state){
+  var p=b[r][c];if(!p)return[];
+  var color=p[0],type=p[1];
+  var moves=[];
+
+  function tryAdd(nr,nc){
+    if(!inBounds(nr,nc))return false;
+    var tgt=b[nr][nc];
+    if(tgt&&tgt[0]===color)return false;
+    moves.push({from:{r:r,c:c},to:{r:nr,c:nc},piece:p,captured:tgt||null});
+    return !tgt;
+  }
+
+  if(type==='P'){
+    var dir = color==='w'?-1:1;
+    var startRow = color==='w'?6:1;
+    if(inBounds(r+dir,c)&&!b[r+dir][c]){
+      moves.push({from:{r:r,c:c},to:{r:r+dir,c:c},piece:p,captured:null});
+      if(r===startRow&&!b[r+2*dir][c]){
+        moves.push({from:{r:r,c:c},to:{r:r+2*dir,c:c},piece:p,captured:null,pawnDouble:true});
+      }
+    }
+    for(var dc=-1;dc<=1;dc+=2){
+      var nr=r+dir,nc=c+dc;
+      if(inBounds(nr,nc)){
+        var tgt=b[nr][nc];
+        if(tgt&&tgt[0]!==color){
+          moves.push({from:{r:r,c:c},to:{r:nr,c:nc},piece:p,captured:tgt});
+        }
+        if(state&&state.enPassantTarget&&state.enPassantTarget.r===nr&&state.enPassantTarget.c===nc){
+          moves.push({from:{r:r,c:c},to:{r:nr,c:nc},piece:p,captured:b[r][nc],enPassant:true});
+        }
+      }
+    }
+  } else if(type==='N'){
+    var knightOffsets=[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]];
+    for(var k=0;k<knightOffsets.length;k++){tryAdd(r+knightOffsets[k][0],c+knightOffsets[k][1]);}
+  } else if(type==='B'){
+    var bdirs=[[-1,-1],[-1,1],[1,-1],[1,1]];
+    for(var d=0;d<bdirs.length;d++){for(var i=1;i<8;i++){if(!tryAdd(r+bdirs[d][0]*i,c+bdirs[d][1]*i))break;}}
+  } else if(type==='R'){
+    var rdirs=[[-1,0],[1,0],[0,-1],[0,1]];
+    for(var d=0;d<rdirs.length;d++){for(var i=1;i<8;i++){if(!tryAdd(r+rdirs[d][0]*i,c+rdirs[d][1]*i))break;}}
+  } else if(type==='Q'){
+    var qdirs=[[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]];
+    for(var d=0;d<qdirs.length;d++){for(var i=1;i<8;i++){if(!tryAdd(r+qdirs[d][0]*i,c+qdirs[d][1]*i))break;}}
+  } else if(type==='K'){
+    for(var dr=-1;dr<=1;dr++)for(var dc=-1;dc<=1;dc++){
+      if(dr===0&&dc===0)continue;
+      tryAdd(r+dr,c+dc);
+    }
+    if(state){
+      var cr=state.castlingRights;
+      var homeRow=color==='w'?7:0;
+      if(r===homeRow&&c===4){
+        var ksKey=color+'K',qsKey=color+'Q';
+        var enemy=color==='w'?'b':'w';
+        if(cr[ksKey]&&!b[homeRow][5]&&!b[homeRow][6]&&b[homeRow][7]===color+'R'){
+          if(!isSquareAttacked(homeRow,4,b,enemy)&&!isSquareAttacked(homeRow,5,b,enemy)&&!isSquareAttacked(homeRow,6,b,enemy)){
+            moves.push({from:{r:r,c:c},to:{r:homeRow,c:6},piece:p,captured:null,castle:'K'});
+          }
+        }
+        if(cr[qsKey]&&!b[homeRow][3]&&!b[homeRow][2]&&!b[homeRow][1]&&b[homeRow][0]===color+'R'){
+          if(!isSquareAttacked(homeRow,4,b,enemy)&&!isSquareAttacked(homeRow,3,b,enemy)&&!isSquareAttacked(homeRow,2,b,enemy)){
+            moves.push({from:{r:r,c:c},to:{r:homeRow,c:2},piece:p,captured:null,castle:'Q'});
+          }
+        }
+      }
+    }
+  }
+  return moves;
+}
+
+function isSquareAttacked(r,c,b,byColor){
+  for(var rr=0;rr<8;rr++)for(var cc=0;cc<8;cc++){
+    var p=b[rr][cc];
+    if(p&&p[0]===byColor){
+      var moves=getPseudoMoves(rr,cc,b,null);
+      for(var m of moves){
+        if(m.to.r===r&&m.to.c===c) return true;
+      }
+    }
+  }
+  return false;
+}
+
+function isInCheck(color,b){
+  var k=findKingOnBoard(color,b);
+  if(!k)return false;
+  var enemy = color==='w'?'b':'w';
+  return isSquareAttacked(k.r,k.c,b,enemy);
+}
+
+/* ---------- MAKE / UNDO MOVE ---------- */
+function makeMove(move,b,state){
+  var from=move.from,to=move.to;
+  var piece=b[from.r][from.c];
+  var captured=b[to.r][to.c];
+  var undoInfo={
+    from:from,to:to,piece:piece,captured:captured,
+    enPassant:move.enPassant||false,castle:move.castle||null,
+    promo:move.promo||null,pawnDouble:move.pawnDouble||false,
+    prevEnPassant:state.enPassantTarget,
+    prevCastling:{wK:state.castlingRights.wK,wQ:state.castlingRights.wQ,bK:state.castlingRights.bK,bQ:state.castlingRights.bQ},
+    prevHalfMove:state.halfMoveClock,prevFullMove:state.fullMoveNumber
+  };
+
+  b[to.r][to.c]=piece;
+  b[from.r][from.c]=null;
+
+  if(move.enPassant){
+    var capR=from.r;
+    b[capR][to.c]=null;
+    undoInfo.epCapturedPos={r:capR,c:to.c};
+    undoInfo.epCapturedPiece=move.captured;
+  }
+
+  if(move.castle==='K'){
+    b[to.r][5]=b[to.r][7];b[to.r][7]=null;
+  } else if(move.castle==='Q'){
+    b[to.r][3]=b[to.r][0];b[to.r][0]=null;
+  }
+
+  if(move.promo){
+    b[to.r][to.c]=piece[0]+move.promo;
+  }
+
+  if(piece[1]==='K'){
+    state.castlingRights[piece[0]+'K']=false;
+    state.castlingRights[piece[0]+'Q']=false;
+  }
+  if(piece[1]==='R'){
+    if(from.c===0&&from.r===(piece[0]==='w'?7:0))state.castlingRights[piece[0]+'Q']=false;
+    if(from.c===7&&from.r===(piece[0]==='w'?7:0))state.castlingRights[piece[0]+'K']=false;
+  }
+  if(captured&&captured[1]==='R'){
+    if(to.c===0&&to.r===(captured[0]==='w'?7:0))state.castlingRights[captured[0]+'Q']=false;
+    if(to.c===7&&to.r===(captured[0]==='w'?7:0))state.castlingRights[captured[0]+'K']=false;
+  }
+
+  state.enPassantTarget=null;
+  if(move.pawnDouble){
+    state.enPassantTarget={r:(from.r+to.r)/2,c:to.c};
+  }
+
+  if(piece[1]==='P'||captured)state.halfMoveClock=0;
+  else state.halfMoveClock++;
+
+  if(piece[0]==='b')state.fullMoveNumber++;
+
+  return undoInfo;
+}
+
+function undoMoveOnBoard(b,state,undoInfo){
+  b[undoInfo.from.r][undoInfo.from.c]=undoInfo.piece;
+  b[undoInfo.to.r][undoInfo.to.c]=undoInfo.captured;
+
+  if(undoInfo.enPassant){
+    b[undoInfo.epCapturedPos.r][undoInfo.epCapturedPos.c]=undoInfo.epCapturedPiece;
+    b[undoInfo.to.r][undoInfo.to.c]=null;
+  }
+  if(undoInfo.castle==='K'){
+    b[undoInfo.to.r][7]=b[undoInfo.to.r][5];b[undoInfo.to.r][5]=null;
+  } else if(undoInfo.castle==='Q'){
+    b[undoInfo.to.r][0]=b[undoInfo.to.r][3];b[undoInfo.to.r][3]=null;
+  }
+
+  state.enPassantTarget=undoInfo.prevEnPassant;
+  state.castlingRights=undoInfo.prevCastling;
+  state.halfMoveClock=undoInfo.prevHalfMove;
+  state.fullMoveNumber=undoInfo.prevFullMove;
+}
+
+/* ---------- LEGAL MOVES ---------- */
+function getLegalMoves(color,b,state){
+  var legal=[];
+  for(var r=0;r<8;r++)for(var c=0;c<8;c++){
+    var p=b[r][c];
+    if(p&&p[0]===color){
+      var pseudo=getPseudoMoves(r,c,b,state);
+      for(var m of pseudo){
+        var isPromo=false;
+        if(p[1]==='P'){
+          if((p[0]==='w'&&m.to.r===0)||(p[0]==='b'&&m.to.r===7))isPromo=true;
+        }
+        if(isPromo){
+          var promos=['Q','R','B','N'];
+          for(var pi=0;pi<promos.length;pi++){
+            var pm={from:m.from,to:m.to,piece:m.piece,captured:m.captured,enPassant:m.enPassant||false,castle:m.castle||null,promo:promos[pi]};
+            var undo=makeMove(pm,b,state);
+            if(!isInCheck(color,b))legal.push(pm);
+            undoMoveOnBoard(b,state,undo);
+          }
+        } else {
+          var undo=makeMove(m,b,state);
+          if(!isInCheck(color,b))legal.push(m);
+          undoMoveOnBoard(b,state,undo);
+        }
+      }
+    }
+  }
+  return legal;
+}
+
+function getLegalMovesForSquare(r,c){
+  var state={
+    board:board,
+    castlingRights:castlingRights,
+    enPassantTarget:enPassantTarget,
+    halfMoveClock:halfMoveClock,
+    fullMoveNumber:fullMoveNumber
+  };
+  var p=board[r][c];
+  if(!p||p[0]!==turn)return[];
+  var pseudo=getPseudoMoves(r,c,board,state);
+  var legal=[];
+  for(var m of pseudo){
+    var isPromo=false;
+    if(p[1]==='P'){
+      if((p[0]==='w'&&m.to.r===0)||(p[0]==='b'&&m.to.r===7))isPromo=true;
+    }
+    if(isPromo){
+      var pm={from:m.from,to:m.to,piece:m.piece,captured:m.captured,enPassant:m.enPassant||false,castle:m.castle||null,promo:'Q'};
+      var undo=makeMove(pm,board,state);
+      if(!isInCheck(turn,board))legal.push(pm);
+      undoMoveOnBoard(board,state,undo);
+    } else {
+      var undo=makeMove(m,board,state);
+      if(!isInCheck(turn,board))legal.push(m);
+      undoMoveOnBoard(board,state,undo);
+    }
+  }
+  return legal;
+}
+
+function getAllLegalMoves(color){
+  var state={
+    board:board,castlingRights:castlingRights,enPassantTarget:enPassantTarget,
+    halfMoveClock:halfMoveClock,fullMoveNumber:fullMoveNumber
+  };
+  return getLegalMoves(color,board,state);
+}
+
+function isCheckmate(color){
+  if(!isInCheck(color,board))return false;
+  return getAllLegalMoves(color).length===0;
+}
+
+function isStalemate(color){
+  if(isInCheck(color,board))return false;
+  return getAllLegalMoves(color).length===0;
+}
+
+function isInsufficientMaterial(){
+  var pieces=[];
+  for(var r=0;r<8;r++)for(var c=0;c<8;c++){
+    if(board[r][c])pieces.push(board[r][c]);
+  }
+  if(pieces.length===2)return true;
+  if(pieces.length===3){
+    for(var p of pieces){if(p[1]==='B'||p[1]==='N')return true;}
+  }
+  return false;
+}
+
+/* ---------- NOTATION ---------- */
+function moveToNotation(move){
+  var p=move.piece;
+  var type=p[1];
+  var from=move.from,to=move.to;
+  var captured=move.captured;
+  var toSq=FILES[to.c]+(8-to.r);
+
+  if(move.castle==='K')return 'O-O';
+  if(move.castle==='Q')return 'O-O-O';
+
+  var letter=PIECE_LETTERS[type];
+  var captureMark=captured||(move.enPassant)?'x':'';
+  var promoMark=move.promo?'='+move.promo:'';
+
+  if(type==='P'){
+    if(captureMark){
+      return FILES[from.c]+'x'+toSq+promoMark;
+    }
+    return toSq+promoMark;
+  }
+  return letter+captureMark+toSq;
+}
+
+/* ---------- RENDER BOARD ---------- */
+function renderBoard(){
+  var boardEl=document.getElementById('board');
+  boardEl.innerHTML='';
+  var checkSquare=null;
+  var inCheck=isInCheck(turn,board);
+  if(inCheck){
+    var k=findKing(turn);
+    if(k)checkSquare=k;
+  }
+  for(var r=0;r<8;r++){
+    for(var c=0;c<8;c++){
+      var sq=document.createElement('div');
+      sq.className='square '+((r+c)%2===0?'light':'dark');
+      sq.dataset.r=r;sq.dataset.c=c;
+
+      if(selected&&selected.r===r&&selected.c===c){
+        sq.classList.add('selected');
+      }
+      for(var vm of validMoves){
+        if(vm.to.r===r&&vm.to.c===c){
+          if(board[r][c]||vm.enPassant)sq.classList.add('valid-capture');
+          else sq.classList.add('valid-move');
+        }
+      }
+      if(lastMove){
+        if((lastMove.from.r===r&&lastMove.from.c===c)||(lastMove.to.r===r&&lastMove.to.c===c)){
+          sq.classList.add('last-move');
+        }
+      }
+      if(checkSquare&&checkSquare.r===r&&checkSquare.c===c){
+        sq.classList.add('check-square');
+      }
+
+      if(board[r][c]){
+        var piece=document.createElement('div');
+        piece.className='piece '+(board[r][c][0]==='w'?'white':'black');
+        piece.textContent=PIECE_UNICODE[board[r][c]];
+        sq.appendChild(piece);
+      }
+      sq.addEventListener('click',function(){handleSquareClick(parseInt(this.dataset.r),parseInt(this.dataset.c));});
+      boardEl.appendChild(sq);
+    }
+  }
+}
+
+/* ---------- HANDLE CLICKS ---------- */
+function handleSquareClick(r,c){
+  if(!gameActive)return;
+  /* Only move on your turn */
+  if(turn!==myColor)return;
+
+  var p=board[r][c];
+
+  if(selected){
+    var foundMove=null;
+    for(var vm of validMoves){
+      if(vm.to.r===r&&vm.to.c===c){foundMove=vm;break;}
+    }
+    if(foundMove){
+      var piece=board[selected.r][selected.c];
+      if(piece[1]==='P'&&((piece[0]==='w'&&r===0)||(piece[0]==='b'&&r===7))){
+        showPromotionModal(function(promo){
+          var fullMove={from:selected,to:{r:r,c:c},piece:piece,captured:board[r][c],promo:promo};
+          if(foundMove.enPassant)fullMove.enPassant=true;
+          if(foundMove.castle)fullMove.castle=foundMove.castle;
+          selected=null;validMoves=[];
+          executeMove(fullMove,true);
+        });
+        return;
+      }
+      selected=null;validMoves=[];
+      executeMove(foundMove,true);
+      return;
+    }
+    if(selected.r===r&&selected.c===c){selected=null;validMoves=[];renderBoard();return;}
+    if(p&&p[0]===turn){
+      selected={r:r,c:c};
+      validMoves=getLegalMovesForSquare(r,c);
+      renderBoard();return;
+    }
+    selected=null;validMoves=[];renderBoard();return;
+  }
+
+  if(p&&p[0]===turn){
+    selected={r:r,c:c};
+    validMoves=getLegalMovesForSquare(r,c);
+    renderBoard();
+  }
+}
+
+/* ---------- EXECUTE MOVE ---------- */
+function executeMove(move,sendToPeer){
+  var state={
+    board:board,castlingRights:castlingRights,enPassantTarget:enPassantTarget,
+    halfMoveClock:halfMoveClock,fullMoveNumber:fullMoveNumber
+  };
+
+  var undo=makeMove(move,board,state);
+  enPassantTarget=state.enPassantTarget;
+  castlingRights=state.castlingRights;
+  halfMoveClock=state.halfMoveClock;
+  fullMoveNumber=state.fullMoveNumber;
+
+  lastMove={from:move.from,to:move.to,piece:move.piece,captured:move.captured,promo:move.promo||null};
+
+  var notation=moveToNotation(move);
+
+  turn=turn==='w'?'b':'w';
+
+  /* Send move to peer */
+  if(sendToPeer&&conn&&peerConnected){
+    var moveData={
+      type:'move',
+      from:FILES[move.from.c]+(8-move.from.r),
+      to:FILES[move.to.c]+(8-move.to.r),
+      promotion:move.promo||'q'
+    };
+    conn.send(moveData);
+  }
+
+  var check=isInCheck(turn,board);
+  var mate=isCheckmate(turn);
+  var stale=isStalemate(turn);
+
+  var statusEl=document.getElementById('statusText');
+
+  if(mate){
+    notation+='#';
+    var winner=turn==='w'?'b':'w';
+    statusEl.textContent='Checkmate! '+(winner==='w'?'Putih':'Hitam')+' menang! 🏆';
+    statusEl.className='status-text checkmate';
+    gameActive=false;
+    stopTimer();
+    saveOnlineGame(winner===myColor?'win':'lose','checkmate');
+    showEndGame(winner===myColor?'win':'lose','Checkmate! '+(winner==='w'?'Putih':'Hitam')+' menang.');
+  } else if(stale){
+    notation+='=';
+    statusEl.textContent='Stalemate! Permainan seri. 🤝';
+    statusEl.className='status-text draw';
+    gameActive=false;
+    stopTimer();
+    saveOnlineGame('draw','stalemate');
+    showEndGame('draw','Stalemate — permainan seri.');
+  } else if(isInsufficientMaterial()){
+    statusEl.textContent='Draw! Material tidak cukup. 🤝';
+    statusEl.className='status-text draw';
+    gameActive=false;
+    stopTimer();
+    saveOnlineGame('draw','insufficient');
+    showEndGame('draw','Material tidak cukup — seri.');
+  } else if(halfMoveClock>=100){
+    statusEl.textContent='Draw! 50-move rule. 🤝';
+    statusEl.className='status-text draw';
+    gameActive=false;
+    stopTimer();
+    saveOnlineGame('draw','50move');
+    showEndGame('draw','50-move rule — seri.');
+  } else if(check){
+    notation+='+';
+    statusEl.textContent='Check! '+(turn==='w'?'Putih':'Hitam')+' harus menghindar.';
+    statusEl.className='status-text check';
+  } else {
+    statusEl.textContent='Giliran '+(turn==='w'?'Putih':'Hitam');
+    statusEl.className='status-text';
+  }
+
+  moveHistory.push({notation:notation,color:move.piece[0],move:move});
+  updateTurnIndicator();
+  updateMoveList();
+  renderBoard();
+}
+
+/* ---------- APPLY PEER MOVE ---------- */
+function applyPeerMove(fromSq,toSq,promotion){
+  /* Convert algebraic to row/col */
+  var fromC=FILES.indexOf(fromSq[0]);
+  var fromR=8-parseInt(fromSq[1]);
+  var toC=FILES.indexOf(toSq[0]);
+  var toR=8-parseInt(toSq[1]);
+
+  var piece=board[fromR][fromC];
+  if(!piece)return;
+
+  /* Find matching legal move */
+  var state={
+    board:board,castlingRights:castlingRights,enPassantTarget:enPassantTarget,
+    halfMoveClock:halfMoveClock,fullMoveNumber:fullMoveNumber
+  };
+  var legal=getLegalMoves(piece[0],board,state);
+  var matched=null;
+  for(var m of legal){
+    if(m.from.r===fromR&&m.from.c===fromC&&m.to.r===toR&&m.to.c===toC){
+      if(promotion&&m.promo===promotion.toUpperCase()){
+        matched=m;break;
+      } else if(!promotion||promotion==='q'){
+        if(m.promo==='Q'){matched=m;break;}
+      }
+    }
+  }
+  if(matched){
+    executeMove(matched,false);
+  }
+}
+
+/* ---------- PROMOTION MODAL ---------- */
+function showPromotionModal(callback){
+  pendingPromotionCallback=callback;
+  var modal=document.getElementById('promoModal');
+  var piecesEl=document.getElementById('promoPieces');
+  piecesEl.innerHTML='';
+  var promos=['Q','R','B','N'];
+  var color=turn;
+  for(var pr of promos){
+    var el=document.createElement('div');
+    el.className='promo-piece';
+    el.textContent=PIECE_UNICODE[color+pr];
+    el.style.color=color==='w'?'#f8fafc':'#1a1a2e';
+    el.onclick=function(){
+      modal.classList.remove('show');
+      pendingPromotionCallback(this.dataset.promo);
+      pendingPromotionCallback=null;
+    };
+    el.dataset.promo=pr;
+    piecesEl.appendChild(el);
+  }
+  modal.classList.add('show');
+}
+
+/* ---------- TURN INDICATOR ---------- */
+function updateTurnIndicator(){
+  var ti=document.getElementById('turnIndicator');
+  var tt=document.getElementById('turnText');
+  if(turn==='w'){
+    ti.className='turn-indicator white-turn';
+    tt.textContent='Giliran Putih'+(myColor==='w'?' (Anda)':' (Lawan)');
+    document.getElementById('whiteTimerBox').classList.add('active');
+    document.getElementById('blackTimerBox').classList.remove('active');
+  } else {
+    ti.className='turn-indicator black-turn';
+    tt.textContent='Giliran Hitam'+(myColor==='b'?' (Anda)':' (Lawan)');
+    document.getElementById('whiteTimerBox').classList.remove('active');
+    document.getElementById('blackTimerBox').classList.add('active');
+  }
+}
+
+/* ---------- MOVE LIST ---------- */
+function updateMoveList(){
+  var el=document.getElementById('moveList');
+  if(moveHistory.length===0){
+    el.innerHTML='<div style="color:var(--text-muted);text-align:center;padding:1rem">Belum ada langkah...</div>';
+    return;
+  }
+  var html='';
+  for(var i=0;i<moveHistory.length;i+=2){
+    var num=Math.floor(i/2)+1;
+    var white=moveHistory[i]?moveHistory[i].notation:'';
+    var black=moveHistory[i+1]?moveHistory[i+1].notation:'';
+    html+='<div class="move-row"><span class="move-num">'+num+'.</span><span class="move-cell">'+white+'</span><span class="move-cell">'+black+'</span></div>';
+  }
+  el.innerHTML=html;
+  el.scrollTop=el.scrollHeight;
+}
+
+/* ---------- TIMERS ---------- */
+function startTimer(){
+  stopTimer();
+  timerInterval=setInterval(function(){
+    if(!gameActive)return;
+    if(turn==='w')whiteTime++;
+    else blackTime++;
+    updateTimerDisplay();
+  },1000);
+}
+function stopTimer(){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+}
+function updateTimerDisplay(){
+  document.getElementById('whiteTimer').textContent=formatTime(whiteTime);
+  document.getElementById('blackTimer').textContent=formatTime(blackTime);
+}
+function formatTime(s){
+  var m=Math.floor(s/60);
+  var sec=s%60;
+  return m+':'+(sec<10?'0':'')+sec;
+}
+
+/* ======== MULTIPLAYER: PeerJS ======== */
+
+/* Generate 6-char room code */
+function generateRoomCode(){
+  var chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  var code='';
+  for(var i=0;i<6;i++){
+    code+=chars.charAt(Math.floor(Math.random()*chars.length));
+  }
+  return code;
+}
+
+/* Show create / join panels */
+function showCreateRoom(){
+  document.getElementById('lobbyButtons').classList.add('hidden');
+  document.getElementById('createPanel').classList.remove('hidden');
+}
+function showJoinRoom(){
+  document.getElementById('lobbyButtons').classList.add('hidden');
+  document.getElementById('joinPanel').classList.remove('hidden');
+}
+function cancelHost(){
+  document.getElementById('createPanel').classList.remove('hidden');
+  document.getElementById('roomCreatedDisplay').classList.add('hidden');
+  if(peer){peer.destroy();peer=null;}
+  peerConnected=false;
+}
+function cancelJoin(){
+  document.getElementById('joinPanel').classList.remove('hidden');
+  document.getElementById('lobbyButtons').classList.remove('hidden');
+  var jcs=document.getElementById('joinConnStatus');
+  if(jcs)jcs.style.display='none';
+  if(peer){peer.destroy();peer=null;}
+  peerConnected=false;
+}
+
+function setHostColor(c){
+  hostColorChoice=c;
+  document.getElementById('hostColorWhite').classList.toggle('active',c==='white');
+  document.getElementById('hostColorBlack').classList.toggle('active',c==='black');
+}
+
+/* HOST: Create room */
+function createRoom(){
+  roomCode=generateRoomCode();
+  isHost=true;
+  myColor=hostColorChoice==='white'?'w':'b';
+
+  document.getElementById('createPanel').classList.add('hidden');
+  document.getElementById('roomCreatedDisplay').classList.remove('hidden');
+  document.getElementById('roomCodeDisplay').textContent=roomCode;
+
+  /* Create Peer with deterministic ID */
+  var peerId='SOMA-'+roomCode;
+  try{
+    peer=new Peer(peerId,{debug:1});
+  }catch(e){
+    showToast('Gagal membuat Peer: '+e.message,'error');
+    return;
+  }
+
+  peer.on('open',function(id){
+    updateHostConnStatus('waiting','Menunggu lawan bergabung... (Room: '+roomCode+')');
+  });
+
+  peer.on('connection',function(c){
+    conn=c;
+    setupConnection();
+  });
+
+  peer.on('error',function(err){
+    showToast('Peer error: '+err.type+' — '+err.message,'error');
+    if(err.type==='unavailable-id'){
+      updateHostConnStatus('offline','Kode sudah dipakai. Coba lagi.');
+      if(peer){peer.destroy();peer=null;}
+    }
+  });
+
+  peer.on('disconnected',function(){
+    if(peer&&!peer.destroyed){peer.reconnect();}
+  });
+}
+
+function updateHostConnStatus(dotClass,text){
+  var el=document.getElementById('hostConnStatus');
+  if(!el)return;
+  el.innerHTML='<div class="conn-dot '+dotClass+'"></div><span>'+text+'</span>';
+}
+
+/* GUEST: Join room */
+function joinRoom(){
+  var code=document.getElementById('joinCodeInput').value.trim().toUpperCase();
+  if(code.length!==6){
+    showToast('Kode harus 6 karakter!','warn');
+    return;
+  }
+  roomCode=code;
+  isHost=false;
+
+  var jcs=document.getElementById('joinConnStatus');
+  jcs.style.display='flex';
+  document.getElementById('joinConnText').textContent='Menghubungkan ke Room '+code+'...';
+
+  /* Guest gets random ID, connects to host */
+  try{
+    peer=new Peer({debug:1});
+  }catch(e){
+    showToast('Gagal membuat Peer: '+e.message,'error');
+    return;
+  }
+
+  peer.on('open',function(id){
+    document.getElementById('joinConnText').textContent='Menghubungkan ke host...';
+    conn=peer.connect('SOMA-'+roomCode,{reliable:true});
+    setupConnection();
+  });
+
+  peer.on('error',function(err){
+    showToast('Peer error: '+err.type+' — '+err.message,'error');
+    if(err.type==='peer-unavailable'){
+      document.getElementById('joinConnText').textContent='Room tidak ditemukan. Periksa kode.';
+      var dot=document.querySelector('#joinConnStatus .conn-dot');
+      if(dot)dot.className='conn-dot offline';
+    }
+  });
+
+  peer.on('disconnected',function(){
+    if(peer&&!peer.destroyed){peer.reconnect();}
+  });
+}
+
+/* Setup data connection handlers */
+function setupConnection(){
+  conn.on('open',function(){
+    peerConnected=true;
+    /* Guest sends hello with color preference response */
+    if(!isHost){
+      /* Guest asks host for color assignment */
+      conn.send({type:'hello',role:'guest'});
+    }
+  });
+
+  conn.on('data',function(data){
+    handlePeerData(data);
+  });
+
+  conn.on('close',function(){
+    peerConnected=false;
+    if(gameActive){
+      showToast('Lawan keluar dari permainan.','warn');
+      var dot=document.getElementById('gameConnDot');
+      if(dot){dot.className='conn-dot offline';}
+      var ct=document.getElementById('gameConnText');
+      if(ct){ct.textContent='Lawan Offline';}
+      /* If game still active, current player wins by forfeit */
+      if(gameActive){
+        gameActive=false;
+        stopTimer();
+        var winner=turn===myColor?myColor:(myColor==='w'?'b':'w');
+        /* If opponent left, you win */
+        saveOnlineGame('win','opponent_left');
+        showEndGame('win','Lawan keluar. Anda menang!');
+      }
+    } else {
+      /* In lobby */
+      if(isHost){
+        updateHostConnStatus('waiting','Menunggu lawan bergabung...');
+      }
+    }
+  });
+
+  conn.on('error',function(err){
+    showToast('Koneksi error: '+err,'error');
+  });
+}
+
+/* Handle incoming peer data */
+function handlePeerData(data){
+  if(!data||!data.type)return;
+
+  switch(data.type){
+    case 'hello':
+      /* Host receives hello from guest — assign colors and start game */
+      if(isHost){
+        /* Host already chose color; guest gets the opposite */
+        var guestColor=hostColorChoice==='white'?'b':'w';
+        conn.send({type:'colorAssign',hostColor:hostColorChoice,guestColor:guestColor==='w'?'white':'black'});
+        myColor=hostColorChoice==='white'?'w':'b';
+        /* Start game */
+        startGame();
+      }
+      break;
+
+    case 'colorAssign':
+      /* Guest receives color assignment */
+      if(!isHost){
+        myColor=data.guestColor==='white'?'w':'b';
+        startGame();
+      }
+      break;
+
+    case 'move':
+      applyPeerMove(data.from,data.to,data.promotion);
+      break;
+
+    case 'chat':
+      addChatMessage(data.text,'peer');
+      break;
+
+    case 'resign':
+      /* Peer resigned — I win */
+      if(gameActive){
+        gameActive=false;
+        stopTimer();
+        saveOnlineGame('win','opponent_resigned');
+        showEndGame('win','Lawan menyerah. Anda menang!');
+      }
+      break;
+
+    case 'draw_offer':
+      drawOfferedByPeer=true;
+      if(drawOfferedByMe){
+        /* Both agreed */
+        acceptDraw();
+      } else {
+        showToast('Lawan menawarkan seri. Klik Draw untuk terima.','warn');
+        document.getElementById('statusText').textContent='Penawaran seri dari lawan. Klik 🤝 Draw untuk terima.';
+      }
+      break;
+
+    case 'draw_accept':
+      if(drawOfferedByMe){
+        acceptDraw();
+      }
+      break;
+
+    case 'rematch_request':
+      peerRematchRequested=true;
+      if(rematchRequested){
+        /* Both want rematch — start new game */
+        doRematchStart();
+      } else {
+        showToast('Lawan ingin main lagi. Klik 🔄 Rematch.','warn');
+        document.getElementById('statusText').textContent='Lawan ingin rematch. Klik 🔄 Rematch untuk mulai.';
+      }
+      break;
+
+    case 'rematch_start':
+      doRematchStart();
+      break;
+
+    case 'new_game_state':
+      /* Host sends new game state to guest */
+      if(!isHost){
+        myColor=data.yourColor==='w'?'w':'b';
+        doRematchStart();
+      }
+      break;
+  }
+}
+
+/* Start the game */
+function startGame(){
+  initBoard();
+  document.getElementById('lobbyScreen').classList.add('hidden');
+  document.getElementById('gameScreen').classList.remove('hidden');
+  document.getElementById('gameRoomCode').textContent=roomCode;
+  var dot=document.getElementById('gameConnDot');
+  if(dot)dot.className='conn-dot online';
+  var ct=document.getElementById('gameConnText');
+  if(ct)ct.textContent='Online';
+
+  document.getElementById('statusText').textContent='Permainan dimulai! '+(myColor==='w'?'Anda Putih':'Anda Hitam');
+  document.getElementById('statusText').className='status-text';
+
+  updateTurnIndicator();
+  updateMoveList();
+  renderBoard();
+  stopTimer();
+  whiteTime=0;blackTime=0;
+  updateTimerDisplay();
+  startTimer();
+
+  showToast('Terhubung! Selamat bermain.','success');
+}
+
+/* ---------- GAME ACTIONS ---------- */
+function resignGame(){
+  if(!gameActive)return;
+  if(!confirm('Yakin ingin menyerah?'))return;
+  gameActive=false;stopTimer();
+  if(conn&&peerConnected){
+    conn.send({type:'resign'});
+  }
+  saveOnlineGame('lose','resigned');
+  showEndGame('lose','Anda menyerah. Lawan menang.');
+  document.getElementById('statusText').textContent='Anda menyerah. 🏳️';
+  document.getElementById('statusText').className='status-text checkmate';
+}
+
+function offerDraw(){
+  if(!gameActive)return;
+  if(drawOfferedByPeer){
+    /* Peer already offered, accept it */
+    if(conn&&peerConnected)conn.send({type:'draw_accept'});
+    acceptDraw();
+    return;
+  }
+  drawOfferedByMe=true;
+  if(conn&&peerConnected)conn.send({type:'draw_offer'});
+  showToast('Penawaran seri dikirim ke lawan.','success');
+  document.getElementById('statusText').textContent='Menunggu respons seri dari lawan...';
+}
+
+function acceptDraw(){
+  if(!gameActive)return;
+  gameActive=false;stopTimer();
+  saveOnlineGame('draw','agreed');
+  showEndGame('draw','Permainan seri. 🤝');
+  document.getElementById('statusText').textContent='Seri! 🤝';
+  document.getElementById('statusText').className='status-text draw';
+  drawOfferedByMe=false;
+  drawOfferedByPeer=false;
+}
+
+function requestRematch(){
+  if(gameActive)return;
+  rematchRequested=true;
+  if(conn&&peerConnected)conn.send({type:'rematch_request'});
+  if(peerRematchRequested){
+    doRematchStart();
+  } else {
+    showToast('Permintaan rematch dikirim.','success');
+    document.getElementById('statusText').textContent='Menunggu lawan untuk rematch...';
+  }
+}
+
+function doRematch(){
+  /* Clicked from end game modal */
+  document.getElementById('endGameModal').classList.remove('show');
+  rematchRequested=true;
+  if(conn&&peerConnected)conn.send({type:'rematch_request'});
+  if(peerRematchRequested){
+    doRematchStart();
+  } else {
+    showToast('Menunggu lawan untuk rematch...','success');
+    document.getElementById('statusText').textContent='Menunggu lawan untuk rematch...';
+  }
+}
+
+function doRematchStart(){
+  rematchRequested=false;
+  peerRematchRequested=false;
+  /* Swap colors for rematch */
+  myColor=myColor==='w'?'b':'w';
+  if(isHost){
+    hostColorChoice=myColor==='w'?'white':'black';
+    if(conn&&peerConnected){
+      conn.send({type:'new_game_state',yourColor:myColor==='w'?'b':'w'});
+    }
+  }
+  initBoard();
+  document.getElementById('endGameModal').classList.remove('show');
+  document.getElementById('statusText').textContent='Rematch! '+(myColor==='w'?'Anda Putih':'Anda Hitam');
+  document.getElementById('statusText').className='status-text';
+  updateTurnIndicator();
+  updateMoveList();
+  renderBoard();
+  stopTimer();
+  whiteTime=0;blackTime=0;
+  updateTimerDisplay();
+  startTimer();
+  showToast('Rematch dimulai!','success');
+}
+
+function leaveGame(){
+  if(!confirm('Keluar dari permainan?'))return;
+  if(gameActive){
+    gameActive=false;stopTimer();
+    if(conn&&peerConnected){
+      conn.send({type:'resign'});
+    }
+  }
+  backToLobby();
+}
+
+function backToLobby(){
+  document.getElementById('endGameModal').classList.remove('show');
+  document.getElementById('gameScreen').classList.add('hidden');
+  document.getElementById('lobbyScreen').classList.remove('hidden');
+  document.getElementById('lobbyButtons').classList.remove('hidden');
+  document.getElementById('createPanel').classList.add('hidden');
+  document.getElementById('roomCreatedDisplay').classList.add('hidden');
+  document.getElementById('joinPanel').classList.add('hidden');
+  var jcs=document.getElementById('joinConnStatus');
+  if(jcs)jcs.style.display='none';
+  document.getElementById('joinCodeInput').value='';
+  gameActive=false;
+  stopTimer();
+  if(conn){try{conn.close();}catch(e){}conn=null;}
+  if(peer){try{peer.destroy();}catch(e){}peer=null;}
+  peerConnected=false;
+  rematchRequested=false;
+  peerRematchRequested=false;
+  drawOfferedByMe=false;
+  drawOfferedByPeer=false;
+}
+
+/* ---------- END GAME MODAL ---------- */
+function showEndGame(result,detail){
+  var modal=document.getElementById('endGameModal');
+  var icon=document.getElementById('endGameIcon');
+  var title=document.getElementById('endGameTitle');
+  var det=document.getElementById('endGameDetail');
+
+  if(result==='win'){
+    icon.textContent='🏆';
+    title.textContent='Menang!';
+    title.style.color='var(--teal-light)';
+  } else if(result==='lose'){
+    icon.textContent='😔';
+    title.textContent='Kalah';
+    title.style.color='#fca5a5';
+  } else {
+    icon.textContent='🤝';
+    title.textContent='Seri!';
+    title.style.color='var(--lavender)';
+  }
+  det.textContent=detail;
+  modal.classList.add('show');
+}
+
+/* ---------- CHAT ---------- */
+function sendChat(){
+  var input=document.getElementById('chatInput');
+  var text=input.value.trim();
+  if(!text)return;
+  if(conn&&peerConnected){
+    conn.send({type:'chat',text:text});
+  }
+  addChatMessage(text,'own');
+  input.value='';
+}
+
+function addChatMessage(text,who){
+  var el=document.getElementById('chatMessages');
+  var div=document.createElement('div');
+  div.className='chat-msg '+who;
+  div.textContent=text;
+  el.appendChild(div);
+  el.scrollTop=el.scrollHeight;
+}
+
+/* ---------- ROOM CODE ACTIONS ---------- */
+function copyRoomCode(){
+  var code=document.getElementById('roomCodeDisplay').textContent;
+  try{
+    navigator.clipboard.writeText(code).then(function(){
+      showToast('Kode disalin: '+code,'success');
+    }).catch(function(){
+      fallbackCopy(code);
+    });
+  }catch(e){
+    fallbackCopy(code);
+  }
+}
+
+function fallbackCopy(text){
+  var ta=document.createElement('textarea');
+  ta.value=text;
+  ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);
+  ta.select();
+  try{document.execCommand('copy');showToast('Kode disalin: '+text,'success');}
+  catch(e){showToast('Gagal menyalin. Kode: '+text,'warn');}
+  document.body.removeChild(ta);
+}
+
+function shareWhatsApp(){
+  var code=document.getElementById('roomCodeDisplay').textContent;
+  var text='Hai! Main catur online bareng aku di SOMA 🧠♟️\n\n'+
+    'Kode Room: '+code+'\n\n'+
+    'Buka link ini lalu klik "Masuk Room" dan masukkan kode:\n'+
+    SOMA_URL+'chess-online.html\n\n'+
+    'Aku menunggu di room! 🎮';
+  var url='https://wa.me/?text='+encodeURIComponent(text);
+  window.open(url,'_blank');
+}
+
+/* ---------- TOAST ---------- */
+var toastTimer=null;
+function showToast(msg,type){
+  var el=document.getElementById('toast');
+  el.textContent=msg;
+  el.className='toast '+(type||'')+' show';
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){el.classList.remove('show');},3500);
+}
+
+/* ---------- SAVE GAME HISTORY ---------- */
+function getOnlineGameHistory(){
+  var data=localStorage.getItem('soma_chess_online_history');
+  if(!data){
+    var dummy=[
+      {date:'2026-07-15',result:'win',moves:42,duration:1200,opponent:'Teman',reason:'checkmate'},
+      {date:'2026-07-16',result:'lose',moves:35,duration:900,opponent:'Teman',reason:'checkmate'},
+      {date:'2026-07-17',result:'draw',moves:55,duration:1800,opponent:'Teman',reason:'agreed'}
+    ];
+    localStorage.setItem('soma_chess_online_history',JSON.stringify(dummy));
+    return dummy;
+  }
+  try{return JSON.parse(data);}catch(e){return [];}
+}
+
+function saveOnlineGame(result,reason){
+  var history=getOnlineGameHistory();
+  var dur=whiteTime+blackTime;
+  history.push({
+    date:new Date().toISOString().split('T')[0],
+    result:result,
+    moves:moveHistory.length,
+    duration:dur,
+    opponent:'Online',
+    reason:reason||'unknown'
+  });
+  localStorage.setItem('soma_chess_online_history',JSON.stringify(history));
+}
+
+/* ---------- NEURAL BACKGROUND ---------- */
+function initNeuralCanvas(){
+  var canvas=document.getElementById('neural-canvas');
+  var ctx=canvas.getContext('2d');
+  function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+  resize();window.addEventListener('resize',resize);
+  var nodes=[];
+  for(var i=0;i<60;i++){
+    nodes.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-0.5)*0.4,vy:(Math.random()-0.5)*0.4,r:Math.random()*2+1});
+  }
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for(var i=0;i<nodes.length;i++){
+      var n=nodes[i];
+      n.x+=n.vx;n.y+=n.vy;
+      if(n.x<0||n.x>canvas.width)n.vx*=-1;
+      if(n.y<0||n.y>canvas.height)n.vy*=-1;
+      ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(165,180,252,'+(0.3+n.r*0.1)+')';ctx.fill();
+      for(var j=i+1;j<nodes.length;j++){
+        var m=nodes[j];
+        var dx=n.x-m.x,dy=n.y-m.y,d=Math.sqrt(dx*dx+dy*dy);
+        if(d<120){
+          ctx.beginPath();ctx.moveTo(n.x,n.y);ctx.lineTo(m.x,m.y);
+          ctx.strokeStyle='rgba(45,212,191,'+(0.15*(1-d/120))+')';
+          ctx.lineWidth=1;ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* ---------- DATETIME ---------- */
+function updateDateTime(){
+  var d=new Date();
+  var days=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  var months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  var txt=days[d.getDay()]+', '+d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear()+' • '+
+    (d.getHours()<10?'0':'')+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
+  var el=document.getElementById('liveDateTime');
+  if(el)el.textContent=txt;
+}
+
+/* ---------- SESSION CHECK ---------- */
+function checkSession(){
+  var params=new URLSearchParams(window.location.search);
+  var demo=params.get('demo');
+  if(demo!=='1'){
+    var session=localStorage.getItem('soma_session');
+    if(!session){window.location.href='login.html';return false;}
+  }
+  return true;
+}
+
+/* ---------- INIT ---------- */
+window.onload=function(){
+  if(!checkSession())return;
+  initNeuralCanvas();
+  updateDateTime();
+  setInterval(updateDateTime,60000);
+
+  document.getElementById('logoutBtn').addEventListener('click',function(e){
+    e.preventDefault();
+    localStorage.removeItem('soma_session');
+    window.location.href='login.html';
+  });
+};
+</script>
+</body>
+</html>
