@@ -690,6 +690,96 @@ input[type="range"]::-moz-range-thumb {
   text-align: center;
   width: 90%;
 }
+
+/* BREATHING EXERCISE */
+.breathing-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+.breathing-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.breathing-tab {
+  padding: 8px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.5);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.breathing-tab:hover { color: var(--text); }
+.breathing-tab.active {
+  background: rgba(13, 148, 136, 0.15);
+  border-color: var(--teal);
+  color: var(--teal-bright);
+  box-shadow: var(--glow-teal);
+}
+.breathing-circle-wrap {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.breathing-circle-wrap svg { width: 100%; height: 100%; }
+.breathing-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+.breathing-instruction {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--teal-bright);
+  text-shadow: 0 0 20px rgba(45, 212, 191, 0.4);
+  margin-bottom: 4px;
+}
+.breathing-count {
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--lavender);
+  text-shadow: 0 0 25px rgba(165, 180, 252, 0.4);
+}
+.breathing-controls { display: flex; gap: 12px; }
+.breathing-stats {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.breathing-stat {
+  text-align: center;
+  padding: 8px 18px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.breathing-stat .val { font-size: 1.5rem; font-weight: 800; color: var(--lavender-light); }
+.breathing-stat .lbl { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+.breathing-complete {
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--teal-bright);
+  padding: 12px 24px;
+  background: rgba(13, 148, 136, 0.1);
+  border: 1px solid rgba(13, 148, 136, 0.3);
+  border-radius: 12px;
+  display: none;
+}
+.breathing-complete.show { display: block; animation: fadeInUp 0.5s ease; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
@@ -820,7 +910,57 @@ input[type="range"]::-moz-range-thumb {
     <div class="streak-badge" id="streakBadge">🔥 Streak: 0 hari fokus ≥7</div>
   </div>
 
-  <!-- SECTION 4: NOISE GENERATOR -->
+  <!-- SECTION 4: BREATHING EXERCISE -->
+  <div class="card">
+    <h2><span class="icon">🌬️</span> Breathing Exercise</h2>
+    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:16px">Latihan pernapasan untuk menenangkan pikiran & meningkatkan fokus sebelum bekerja.</p>
+    <div class="breathing-wrap">
+      <div class="breathing-tabs">
+        <button class="breathing-tab active" onclick="switchBreathing('478', this)">4-7-8 Breathing</button>
+        <button class="breathing-tab" onclick="switchBreathing('box', this)">Box Breathing</button>
+      </div>
+      <div class="breathing-circle-wrap">
+        <svg viewBox="0 0 200 200" id="breathingSvg">
+          <defs>
+            <radialGradient id="breathGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.3"/>
+              <stop offset="70%" stop-color="#0d9488" stop-opacity="0.15"/>
+              <stop offset="100%" stop-color="#0d9488" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="breathGlow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(165,180,252,0.08)" stroke-width="1.5"/>
+          <circle cx="100" cy="100" r="40" fill="url(#breathGrad)" stroke="#0d9488" stroke-width="2"
+            id="breathCircle" filter="url(#breathGlow)" style="transition:all 0.5s ease"/>
+        </svg>
+        <div class="breathing-text">
+          <div class="breathing-instruction" id="breathInstruction">Siap untuk latihan?</div>
+          <div class="breathing-count" id="breathCount">—</div>
+        </div>
+      </div>
+      <div class="breathing-controls">
+        <button class="btn" id="breathStartBtn" onclick="toggleBreathing()">▶ Start</button>
+        <button class="btn secondary" onclick="stopBreathing()">⏹ Stop</button>
+      </div>
+      <div class="breathing-stats">
+        <div class="breathing-stat">
+          <div class="val" id="breathCycles">0</div>
+          <div class="lbl">Siklus</div>
+        </div>
+        <div class="breathing-stat">
+          <div class="val" id="breathPhase">—</div>
+          <div class="lbl">Fase</div>
+        </div>
+        <div class="breathing-stat">
+          <div class="val" id="breathTechnique">4-7-8</div>
+          <div class="lbl">Teknik</div>
+        </div>
+      </div>
+      <div class="breathing-complete" id="breathComplete">🎯 Otak lebih fokus sekarang! Selamat melanjutkan aktivitas.</div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: NOISE GENERATOR -->
   <div class="card">
     <h2><span class="icon">🎧</span> Noise Generator</h2>
     <p style="color:var(--text-muted);font-size:0.9rem">Suara bantu fokus generated real-time dengan Web Audio API</p>
@@ -1527,6 +1667,136 @@ function renderTips() {
   document.getElementById('tipsList').innerHTML = html;
 }
 
+// === BREATHING EXERCISE ===
+var breathTechniques = {
+  '478': { name: '4-7-8', phases: [
+    { label: 'Tarik Napas...', duration: 4, circle: 75 },
+    { label: 'Tahan...', duration: 7, circle: 75 },
+    { label: 'Hembuskan...', duration: 8, circle: 30 }
+  ]},
+  'box': { name: 'Box', phases: [
+    { label: 'Tarik Napas...', duration: 4, circle: 75 },
+    { label: 'Tahan...', duration: 4, circle: 75 },
+    { label: 'Hembuskan...', duration: 4, circle: 30 },
+    { label: 'Tahan...', duration: 4, circle: 30 }
+  ]}
+};
+var breathCurrentTech = '478';
+var breathRunning = false;
+var breathPaused = false;
+var breathPhaseIdx = 0;
+var breathCountdown = 0;
+var breathCycles = 0;
+var breathInterval = null;
+
+function switchBreathing(tech, btn) {
+  if (breathRunning) { showToast('Stop breathing dulu'); return; }
+  breathCurrentTech = tech;
+  document.querySelectorAll('.breathing-tab').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  document.getElementById('breathTechnique').textContent = breathTechniques[tech].name;
+  document.getElementById('breathInstruction').textContent = 'Siap untuk latihan?';
+  document.getElementById('breathCount').textContent = '—';
+  document.getElementById('breathPhase').textContent = '—';
+  document.getElementById('breathCycles').textContent = '0';
+  document.getElementById('breathComplete').classList.remove('show');
+  setBreathCircle(40);
+}
+
+function setBreathCircle(r) {
+  var c = document.getElementById('breathCircle');
+  c.setAttribute('r', r);
+  c.style.transition = 'all 1s ease';
+}
+
+function toggleBreathing() {
+  if (breathRunning) {
+    // Pause
+    breathRunning = false;
+    breathPaused = true;
+    clearInterval(breathInterval);
+    document.getElementById('breathStartBtn').textContent = '▶ Resume';
+  } else {
+    // Start / Resume
+    breathRunning = true;
+    breathPaused = false;
+    document.getElementById('breathStartBtn').textContent = '⏸ Pause';
+    document.getElementById('breathComplete').classList.remove('show');
+    if (breathCountdown === 0 && breathCycles === 0) {
+      breathPhaseIdx = 0;
+      breathCycles = 0;
+      startBreathPhase();
+    } else {
+      runBreathCountdown();
+    }
+  }
+}
+
+function startBreathPhase() {
+  var phases = breathTechniques[breathCurrentTech].phases;
+  var phase = phases[breathPhaseIdx];
+  breathCountdown = phase.duration;
+  document.getElementById('breathInstruction').textContent = phase.label;
+  document.getElementById('breathPhase').textContent = phase.label.replace('...', '');
+  // Animate circle
+  var transitionSec = phase.duration > 1 ? phase.duration : 1;
+  var c = document.getElementById('breathCircle');
+  c.style.transition = 'all ' + transitionSec + 's ease';
+  setBreathCircle(phase.circle);
+  runBreathCountdown();
+}
+
+function runBreathCountdown() {
+  clearInterval(breathInterval);
+  document.getElementById('breathCount').textContent = breathCountdown;
+  breathInterval = setInterval(function() {
+    if (!breathRunning) return;
+    breathCountdown--;
+    if (breathCountdown <= 0) {
+      clearInterval(breathInterval);
+      nextBreathPhase();
+    } else {
+      document.getElementById('breathCount').textContent = breathCountdown;
+    }
+  }, 1000);
+}
+
+function nextBreathPhase() {
+  var phases = breathTechniques[breathCurrentTech].phases;
+  breathPhaseIdx++;
+  if (breathPhaseIdx >= phases.length) {
+    breathPhaseIdx = 0;
+    breathCycles++;
+    document.getElementById('breathCycles').textContent = breathCycles;
+    if (breathCycles >= 4) {
+      stopBreathing();
+      document.getElementById('breathComplete').classList.add('show');
+      document.getElementById('breathInstruction').textContent = 'Selesai! 🎯';
+      document.getElementById('breathCount').textContent = '✓';
+      document.getElementById('breathPhase').textContent = 'Done';
+      beep(660, 0.2);
+      setTimeout(function() { beep(880, 0.3); }, 250);
+      return;
+    }
+  }
+  startBreathPhase();
+}
+
+function stopBreathing() {
+  breathRunning = false;
+  breathPaused = false;
+  clearInterval(breathInterval);
+  breathPhaseIdx = 0;
+  breathCountdown = 0;
+  breathCycles = 0;
+  document.getElementById('breathStartBtn').textContent = '▶ Start';
+  document.getElementById('breathInstruction').textContent = 'Siap untuk latihan?';
+  document.getElementById('breathCount').textContent = '—';
+  document.getElementById('breathPhase').textContent = '—';
+  document.getElementById('breathCycles').textContent = '0';
+  setBreathCircle(40);
+}
+
 // === INIT ===
 updatePomoDisplay();
 updatePomoStats();
@@ -1535,5 +1805,7 @@ renderWeekChart();
 renderStreak();
 renderTips();
 </script>
+<script src="notifications.js"></script>
+<script>if(typeof SomaNotify!=='undefined')SomaNotify.init();</script>
 </body>
 </html>

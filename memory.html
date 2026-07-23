@@ -325,6 +325,39 @@ footer{
   border-top:1px solid rgba(165,180,252,.1);color:var(--text-muted);font-size:.9rem;
 }
 
+/* FORGETFUL NOTES */
+.forgetful-wrap{display:grid;grid-template-columns:1fr;gap:1.2rem}
+.forgetful-input-row{display:flex;gap:.8rem;flex-wrap:wrap}
+.forgetful-input-row input{flex:1;min-width:200px;padding:.8rem 1rem;font-size:1rem;
+  background:rgba(15,23,42,.5);border:1px solid var(--lavender);border-radius:10px;color:var(--white)}
+.forgetful-input-row input:focus{outline:none;border-color:var(--teal);box-shadow:var(--glow-teal)}
+.forgetful-count{font-size:.85rem;color:var(--text-muted);margin-top:.5rem}
+.forgetful-count span{color:var(--teal-light);font-weight:700;font-size:1rem}
+.forgetful-list{display:flex;flex-direction:column;gap:.6rem;max-height:400px;overflow-y:auto}
+.forgetful-item{
+  display:flex;align-items:flex-start;gap:.8rem;padding:.9rem 1rem;
+  background:rgba(15,23,42,.4);border:1px solid rgba(165,180,252,.12);
+  border-radius:12px;transition:.3s;
+}
+.forgetful-item:hover{border-color:rgba(13,148,136,.3)}
+.forgetful-item.active{border-color:var(--teal);background:rgba(13,148,136,.08);box-shadow:0 0 12px rgba(13,148,136,.15)}
+.forgetful-item-body{flex:1}
+.forgetful-item-text{font-size:.95rem;color:var(--lavender-light);line-height:1.5}
+.forgetful-item-date{font-size:.75rem;color:var(--text-muted);margin-top:.3rem}
+.forgetful-item-badge{display:inline-block;font-size:.7rem;padding:.2rem .5rem;border-radius:4px;
+  margin-top:.4rem;background:rgba(13,148,136,.15);color:var(--teal-light);font-weight:600}
+.forgetful-item-actions{display:flex;gap:.4rem;flex-shrink:0}
+.forgetful-btn{
+  padding:.35rem .7rem;font-size:.78rem;border:none;border-radius:8px;cursor:pointer;
+  transition:.3s;font-weight:600;
+}
+.forgetful-btn.remind{background:rgba(13,148,136,.15);border:1px solid rgba(13,148,136,.3);color:var(--teal-light)}
+.forgetful-btn.remind:hover{background:rgba(13,148,136,.25)}
+.forgetful-btn.remind.active{background:var(--teal);color:var(--white)}
+.forgetful-btn.del{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#fca5a5}
+.forgetful-btn.del:hover{background:rgba(239,68,68,.2)}
+.forgetful-empty{text-align:center;padding:2rem 1rem;color:var(--text-muted);font-size:.9rem}
+
 /* RESPONSIVE */
 @media(max-width:900px){
   .game-grid{grid-template-columns:1fr}
@@ -521,6 +554,24 @@ footer{
     </div>
   </div>
   <div class="flashcard-list" id="fcList"></div>
+</div>
+
+<!-- 2b. CATATAN HAL YANG SERING LUPA -->
+<div class="section">
+  <h2 class="section-title">💡 Catatan Hal yang Sering Lupa</h2>
+  <div class="card">
+    <div class="forgetful-wrap">
+      <div>
+        <p style="font-size:.9rem;color:var(--text-muted);margin-bottom:.8rem">Catat hal yang sering Bapak lupa. Item aktif akan diingatkan via notifikasi setiap pagi jam 07:00.</p>
+        <div class="forgetful-input-row">
+          <input type="text" id="forgetfulInput" placeholder="Catat hal yang sering Bapak lupa... (cth: Lupa nama tetangga, Lupa taruh kunci, Lupa jadwal meeting)">
+          <button class="btn btn-teal" onclick="addForgetfulItem()">Tambah</button>
+        </div>
+        <div class="forgetful-count">Total catatan: <span id="forgetfulTotal">0</span> • Aktif: <span id="forgetfulActive">0</span></div>
+      </div>
+      <div class="forgetful-list" id="forgetfulList"></div>
+    </div>
+  </div>
 </div>
 
 <!-- 3. SPACED REPETITION -->
@@ -1418,6 +1469,68 @@ var tipIdx=Math.floor(Math.random()*tips.length);
 document.getElementById('tipIcon').textContent=tips[tipIdx].icon;
 document.getElementById('tipText').textContent=tips[tipIdx].text;
 
+/* ===== FORGETFUL NOTES ===== */
+function getForgetfulItems(){return JSON.parse(localStorage.getItem('soma_forgetful_items')||'[]');}
+function saveForgetfulItems(items){localStorage.setItem('soma_forgetful_items',JSON.stringify(items));}
+
+function addForgetfulItem(){
+  var input=document.getElementById('forgetfulInput');
+  var text=input.value.trim();
+  if(!text){input.focus();return;}
+  var items=getForgetfulItems();
+  items.unshift({id:Date.now(),text:text,date:new Date().toISOString(),active:false});
+  saveForgetfulItems(items);
+  input.value='';
+  renderForgetfulItems();
+}
+
+function deleteForgetfulItem(id){
+  var items=getForgetfulItems().filter(function(i){return i.id!==id;});
+  saveForgetfulItems(items);
+  renderForgetfulItems();
+}
+
+function toggleForgetfulReminder(id){
+  var items=getForgetfulItems();
+  items.forEach(function(i){if(i.id===id)i.active=!i.active;});
+  saveForgetfulItems(items);
+  renderForgetfulItems();
+  var item=items.filter(function(i){return i.id===id;})[0];
+  if(item&&item.active&&typeof SomaNotify!=='undefined'){
+    SomaNotify.showToast('💡 Pengingat Aktif','"'+item.text+'" akan diingatkan setiap pagi 07:00','forgetful',5000);
+  }
+}
+
+function renderForgetfulItems(){
+  var items=getForgetfulItems();
+  var listEl=document.getElementById('forgetfulList');
+  document.getElementById('forgetfulTotal').textContent=items.length;
+  document.getElementById('forgetfulActive').textContent=items.filter(function(i){return i.active;}).length;
+  if(items.length===0){
+    listEl.innerHTML='<div class="forgetful-empty">Belum ada catatan. Tambahkan hal yang sering Bapak lupa di atas. 💡</div>';
+    return;
+  }
+  var html='';
+  items.forEach(function(i){
+    var d=new Date(i.date);
+    var dateStr=d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+    html+='<div class="forgetful-item'+(i.active?' active':'')+'">'+
+      '<div class="forgetful-item-body">'+
+        '<div class="forgetful-item-text">'+escapeHtml(i.text)+'</div>'+
+        '<div class="forgetful-item-date">'+dateStr+'</div>'+
+        (i.active?'<span class="forgetful-item-badge">🔔 Pengingat aktif</span>':'')+
+      '</div>'+
+      '<div class="forgetful-item-actions">'+
+        '<button class="forgetful-btn remind'+(i.active?' active':'')+'" onclick="toggleForgetfulReminder('+i.id+')">'+(i.active?'🔔 Aktif':'Ingatkan Besok')+'</button>'+
+        '<button class="forgetful-btn del" onclick="deleteForgetfulItem('+i.id+')">Hapus</button>'+
+      '</div>'+
+    '</div>';
+  });
+  listEl.innerHTML=html;
+}
+
+function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
 /* ===== INIT ===== */
 renderFlashcardList();
 updateFlashcardDisplay();
@@ -1425,6 +1538,9 @@ updateSRDisplay();
 updateMemoryScore();
 updateAchievements();
 drawWeeklyChart();
+renderForgetfulItems();
 </script>
+<script src="notifications.js"></script>
+<script>if(typeof SomaNotify!=='undefined')SomaNotify.init();</script>
 </body>
 </html>

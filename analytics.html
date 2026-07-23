@@ -236,6 +236,112 @@ body::before {
 .corr-text strong { color: var(--teal-bright); }
 .corr-text .neg { color: var(--orange); }
 
+/* TARGET VS REALITA */
+.target-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+.target-item {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+}
+.target-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.target-item-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--lavender-light);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.target-item-status {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+.target-item-status.ok { background: rgba(13, 148, 136, 0.15); color: var(--teal-bright); }
+.target-item-status.miss { background: rgba(239, 68, 68, 0.12); color: #f87171; }
+.target-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.target-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.target-bar-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  width: 50px;
+  flex-shrink: 0;
+  text-align: right;
+}
+.target-bar-track {
+  flex: 1;
+  height: 24px;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+.target-bar-outline {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  border: 2px dashed rgba(165, 180, 252, 0.4);
+  border-radius: 6px;
+  background: transparent;
+  transition: width 1s ease;
+}
+.target-bar-fill {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  border-radius: 6px;
+  transition: width 1.2s ease;
+}
+.target-bar-fill.sleep { background: linear-gradient(90deg, #818cf8, #6366f1); }
+.target-bar-fill.focus { background: linear-gradient(90deg, #2dd4bf, #0d9488); }
+.target-bar-fill.memory { background: linear-gradient(90deg, #c084fc, #8b5cf6); }
+.target-bar-fill.learn { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+.target-bar-val {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  width: 80px;
+  flex-shrink: 0;
+}
+.target-summary {
+  margin-top: 18px;
+  text-align: center;
+  padding: 16px;
+  background: rgba(13, 148, 136, 0.08);
+  border: 1px solid rgba(13, 148, 136, 0.2);
+  border-radius: 12px;
+}
+.target-summary-pct {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--teal-bright);
+}
+.target-summary-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
 /* DONUT CHART */
 .donut-wrap {
   display: grid;
@@ -458,7 +564,7 @@ body::before {
 
 /* RESPONSIVE */
 @media (max-width: 700px) {
-  .overview-grid, .donut-wrap, .corr-grid { grid-template-columns: 1fr; }
+  .overview-grid, .donut-wrap, .corr-grid, .target-grid { grid-template-columns: 1fr; }
   .navbar { justify-content: flex-start; overflow-x: auto; }
   .page-header h1 { font-size: 1.5rem; }
 }
@@ -505,6 +611,17 @@ body::before {
     <h2><span class="icon">🔗</span> Correlation Analysis</h2>
     <p style="color:var(--text-muted);font-size:0.85rem">Hubungan antara aktivitas otak dan performa kognitif.</p>
     <div class="corr-grid" id="corrGrid"></div>
+  </div>
+
+  <!-- SECTION 2b: TARGET VS REALITA -->
+  <div class="card">
+    <h2><span class="icon">🎯</span> Target vs Realita</h2>
+    <p style="color:var(--text-muted);font-size:0.85rem">Perbandingan target personal vs capaian aktual hari ini / minggu ini.</p>
+    <div class="target-grid" id="targetGrid"></div>
+    <div class="target-summary">
+      <div class="target-summary-pct" id="targetPct">0%</div>
+      <div class="target-summary-label" id="targetPctLabel">target tercapai</div>
+    </div>
   </div>
 
   <!-- SECTION 3: CATEGORY BREAKDOWN -->
@@ -1121,13 +1238,123 @@ function renderAchievements() {
   document.getElementById('achTotal').textContent = unlockedCount + ' dari ' + ALL_ACHIEVEMENTS.length + ' achievement diraih';
 }
 
+/* ===== TARGET VS REALITA ===== */
+function renderTargetVsRealita() {
+  var targets = JSON.parse(localStorage.getItem('soma_targets') || '{}');
+  // Default targets if not set
+  if (!targets.sleep) targets.sleep = 7.5;
+  if (!targets.focus) targets.focus = 4;
+  if (!targets.memory) targets.memory = 2;
+  if (!targets.learn) targets.learn = 30;
+
+  // Read actual data
+  var sleepData = JSON.parse(localStorage.getItem('soma_sleep_data') || '[]');
+  var focusData = JSON.parse(localStorage.getItem('soma_focus_data') || '[]');
+  var memoryScores = JSON.parse(localStorage.getItem('soma_memory_scores') || '{}');
+  var learnProgress = JSON.parse(localStorage.getItem('soma_learn_progress') || '{}');
+
+  // Compute actuals (today or last 7 days avg)
+  var todayStr = new Date().toISOString().slice(0, 10);
+
+  // Sleep: last 7 days avg hours
+  var recentSleep = sleepData.slice(-7);
+  var sleepActual = 0;
+  if (recentSleep.length > 0) {
+    var totalH = recentSleep.reduce(function(a, d) {
+      var h = d.hours || (d.duration ? d.duration.total / 60 : 0);
+      return a + h;
+    }, 0);
+    sleepActual = totalH / recentSleep.length;
+  }
+
+  // Focus: today's pomodoro sessions + focus data sessions
+  var pomoHistory = JSON.parse(localStorage.getItem('soma_pomodoro_history') || '[]');
+  var focusToday = pomoHistory.filter(function(h) { return h.date === todayStr && h.type === 'focus'; }).length;
+  var focusDataToday = focusData.filter(function(d) { return d.date === todayStr; });
+  if (focusDataToday.length > 0 && focusDataToday[0].sessions) {
+    focusToday += focusDataToday[0].sessions;
+  }
+  if (focusToday === 0 && focusData.length > 0) {
+    // fallback: last 7 days avg sessions
+    var recentFocus = focusData.slice(-7);
+    var totalS = recentFocus.reduce(function(a, d) { return a + (d.sessions || 0); }, 0);
+    focusToday = Math.round(totalS / recentFocus.length);
+  }
+
+  // Memory: today's games played
+  var memPlays = 0;
+  if (memoryScores.wordRecall) memPlays += memoryScores.wordRecall.plays || 0;
+  if (memoryScores.sequence) memPlays += memoryScores.sequence.plays || 0;
+  if (memoryScores.pattern) memPlays += memoryScores.pattern.plays || 0;
+  if (memoryScores.number) memPlays += memoryScores.number.plays || 0;
+  // For "today", use gamesPlayed today if available, else use total plays as fallback
+  var memToday = memoryScores.gamesPlayedToday || Math.min(memPlays, 1);
+
+  // Learn: today's minutes
+  var learnToday = 0;
+  if (learnProgress.todayMinutes) {
+    learnToday = learnProgress.todayMinutes;
+  } else if (learnProgress.totalMinutes) {
+    learnToday = Math.round(learnProgress.totalMinutes / 7);
+  }
+
+  var items = [
+    { key: 'sleep', icon: '😴', label: 'Jam Tidur', target: targets.sleep, actual: parseFloat(sleepActual.toFixed(1)), unit: 'h', cls: 'sleep' },
+    { key: 'focus', icon: '🎯', label: 'Sesi Fokus', target: targets.focus, actual: focusToday, unit: ' sesi', cls: 'focus' },
+    { key: 'memory', icon: '🧩', label: 'Memory Game', target: targets.memory, actual: memToday, unit: ' game', cls: 'memory' },
+    { key: 'learn', icon: '📖', label: 'Belajar', target: targets.learn, actual: learnToday, unit: ' min', cls: 'learn' }
+  ];
+
+  var html = '';
+  var achieved = 0;
+  items.forEach(function(item) {
+    var ok = item.actual >= item.target;
+    if (ok) achieved++;
+    var pct = item.target > 0 ? Math.min(100, (item.actual / item.target) * 100) : 0;
+    var targetPct = 100; // target = 100% of track
+    html += '<div class="target-item">' +
+      '<div class="target-item-header">' +
+        '<div class="target-item-label">' + item.icon + ' ' + item.label + '</div>' +
+        '<div class="target-item-status ' + (ok ? 'ok' : 'miss') + '">' + (ok ? '✓ Tercapai' : '✗ Belum') + '</div>' +
+      '</div>' +
+      '<div class="target-bar-wrap">' +
+        '<div class="target-bar-row">' +
+          '<div class="target-bar-label">Target</div>' +
+          '<div class="target-bar-track">' +
+            '<div class="target-bar-outline" style="width:' + targetPct + '%"></div>' +
+          '</div>' +
+          '<div class="target-bar-val">' + item.target + item.unit + '</div>' +
+        '</div>' +
+        '<div class="target-bar-row">' +
+          '<div class="target-bar-label">Realita</div>' +
+          '<div class="target-bar-track">' +
+            '<div class="target-bar-fill ' + item.cls + '" style="width:' + pct + '%"></div>' +
+          '</div>' +
+          '<div class="target-bar-val">' + item.actual + item.unit + '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  });
+
+  document.getElementById('targetGrid').innerHTML = html;
+  var achievePct = Math.round((achieved / items.length) * 100);
+  document.getElementById('targetPct').textContent = achievePct + '%';
+  var labelTxt = achievePct >= 75 ? 'Alhamdulillah! Sebagian besar target tercapai 🎉' :
+                 achievePct >= 50 ? 'Lumayan, tingkatkan lagi target yang belum tercapai 💪' :
+                 'Semangat! Masih bisa kejar target yang belum tercapai 📈';
+  document.getElementById('targetPctLabel').textContent = labelTxt;
+}
+
 /* ===== INIT ===== */
 renderOverview();
 renderCorrelations();
+renderTargetVsRealita();
 renderDonut();
 renderHeatmap();
 renderSuggestions();
 renderAchievements();
 </script>
+<script src="notifications.js"></script>
+<script>if(typeof SomaNotify!=='undefined')SomaNotify.init();</script>
 </body>
 </html>

@@ -395,7 +395,7 @@ input[type="range"]::-moz-range-thumb {
   position: fixed;
   top: 12px;
   right: 12px;
-  background: rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92,246, 0.2);
   border: 1px solid rgba(139, 92, 246, 0.4);
   color: var(--lavender);
   padding: 4px 12px;
@@ -403,6 +403,73 @@ input[type="range"]::-moz-range-thumb {
   font-size: 0.75rem;
   z-index: 200;
 }
+
+/* PENGINGAT TIDUR */
+.reminder-toggle-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+.reminder-toggle-label {
+  font-size: 0.95rem;
+  color: var(--text);
+  font-weight: 600;
+}
+.reminder-toggle {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+.reminder-toggle.on {
+  background: rgba(13, 148, 136, 0.3);
+  border-color: var(--teal);
+  box-shadow: var(--glow-teal);
+}
+.reminder-toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+.reminder-toggle.on .reminder-toggle-knob {
+  left: 26px;
+  background: var(--teal-bright);
+  box-shadow: 0 0 8px rgba(45, 212, 191, 0.6);
+}
+.reminder-time-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.reminder-time-row label { margin-top: 0; margin-bottom: 0; flex-shrink: 0; }
+.reminder-time-row input[type="time"] { max-width: 120px; }
+.reminder-preview {
+  padding: 12px 16px;
+  background: rgba(165, 180, 252, 0.08);
+  border: 1px solid rgba(165, 180, 252, 0.2);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: var(--lavender);
+  margin-bottom: 12px;
+}
+.reminder-preview strong { color: var(--lavender-light); }
 </style>
 </head>
 <body>
@@ -493,6 +560,26 @@ input[type="range"]::-moz-range-thumb {
       <input type="range" id="volumeSlider" min="0" max="100" value="50" style="max-width:120px">
     </div>
     <div id="timerDisplay" style="text-align:center;color:var(--soft-blue);margin-top:8px;font-size:0.85rem"></div>
+  </div>
+
+  <!-- Section 3b: Pengingat Tidur -->
+  <div class="card">
+    <h2><span class="icon">⏰</span> Pengingat Tidur</h2>
+    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:16px">Aktifkan pengingat untuk persiapan tidur setiap hari.</p>
+    <div class="reminder-toggle-wrap">
+      <span class="reminder-toggle-label">Aktifkan pengingat tidur</span>
+      <div class="reminder-toggle" id="sleepReminderToggle" onclick="toggleSleepReminder()">
+        <div class="reminder-toggle-knob"></div>
+      </div>
+    </div>
+    <div class="reminder-time-row">
+      <label>Waktu Pengingat</label>
+      <input type="time" id="reminderTimeInput" value="21:30" onchange="saveSleepReminderTime()">
+    </div>
+    <div class="reminder-preview" id="reminderPreview">
+      ⏰ Pengingat akan muncul setiap hari jam <strong>21:30</strong>
+    </div>
+    <button class="btn secondary" onclick="testSleepReminder()">🔔 Test Pengingat</button>
   </div>
 
   <!-- Section 4: Sleep Schedule -->
@@ -901,10 +988,78 @@ document.getElementById('volumeSlider').addEventListener('input', function() {
   if (masterGain) masterGain.gain.value = (this.value / 100) * 0.7;
 });
 
+// === PENGINGAT TIDUR ===
+function loadSleepReminder() {
+  var saved = JSON.parse(localStorage.getItem('soma_sleep_reminder') || '{}');
+  var enabled = saved.enabled || false;
+  var time = saved.time || '21:30';
+  document.getElementById('reminderTimeInput').value = time;
+  updateReminderToggle(enabled);
+  updateReminderPreview(time, enabled);
+  if (enabled && typeof SomaNotify !== 'undefined') {
+    SomaNotify.setReminderTime('sleep', time);
+    SomaNotify.toggleReminder('sleep', true);
+  }
+}
+
+function updateReminderToggle(on) {
+  var toggle = document.getElementById('sleepReminderToggle');
+  if (on) toggle.classList.add('on');
+  else toggle.classList.remove('on');
+}
+
+function updateReminderPreview(time, enabled) {
+  var preview = document.getElementById('reminderPreview');
+  if (enabled) {
+    preview.innerHTML = '⏰ Pengingat akan muncul setiap hari jam <strong>' + time + '</strong>';
+    preview.style.opacity = '1';
+  } else {
+    preview.innerHTML = '⏰ Pengingat tidur nonaktif. Aktifkan untuk mendapatkan notifikasi harian.';
+    preview.style.opacity = '0.6';
+  }
+}
+
+function toggleSleepReminder() {
+  var saved = JSON.parse(localStorage.getItem('soma_sleep_reminder') || '{}');
+  var newEnabled = !saved.enabled;
+  var time = document.getElementById('reminderTimeInput').value || '21:30';
+  var config = { enabled: newEnabled, time: time };
+  localStorage.setItem('soma_sleep_reminder', JSON.stringify(config));
+  updateReminderToggle(newEnabled);
+  updateReminderPreview(time, newEnabled);
+  if (typeof SomaNotify !== 'undefined') {
+    SomaNotify.setReminderTime('sleep', time);
+    SomaNotify.toggleReminder('sleep', newEnabled);
+  }
+}
+
+function saveSleepReminderTime() {
+  var time = document.getElementById('reminderTimeInput').value || '21:30';
+  var saved = JSON.parse(localStorage.getItem('soma_sleep_reminder') || '{}');
+  saved.time = time;
+  localStorage.setItem('soma_sleep_reminder', JSON.stringify(saved));
+  updateReminderPreview(time, saved.enabled);
+  if (typeof SomaNotify !== 'undefined') {
+    SomaNotify.setReminderTime('sleep', time);
+  }
+}
+
+function testSleepReminder() {
+  if (typeof SomaNotify !== 'undefined') {
+    SomaNotify.showToast('😴 Saatnya Persiapan Tidur', 'Matikan gadget, lakukan breathing exercise, baca doa tidur. Target tidur 22:00.', 'sleep', 6000);
+    SomaNotify.sendBrowserNotif('😴 Saatnya Persiapan Tidur', 'Matikan gadget, lakukan breathing exercise, baca doa tidur. Target tidur 22:00.', '😴');
+  } else {
+    alert('Pengingat: Saatnya persiapan tidur! 😴');
+  }
+}
+
 // Init
 renderTips();
 renderWeekChart();
 renderStreak();
+loadSleepReminder();
 </script>
+<script src="notifications.js"></script>
+<script>if(typeof SomaNotify!=='undefined')SomaNotify.init();loadSleepReminder();</script>
 </body>
 </html>
