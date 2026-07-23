@@ -737,8 +737,32 @@ function enterPhase() {
   // Mainkan audio sesuai fase
   playBreathSound(phase.sound);
   
+  // Getar (vibration) sesuai fase — hanya di HP yang support
+  playBreathVibration(phase.sound);
+  
   // Mulai countdown untuk fase ini
   runCountdown();
+}
+
+function playBreathVibration(type) {
+  try {
+    if (!navigator.vibrate) return; // HP tidak support vibration
+    
+    if (type === 'inhale') {
+      // Getar panjang naik — seperti tarik napas dalam
+      // Pattern: mulai lembut, getar makin kuangkaik
+      navigator.vibrate([100, 50, 200, 50, 400]);
+    } else if (type === 'hold') {
+      // Getar pendek 2x — seperti menahan napas
+      navigator.vibrate([80, 100, 80]);
+    } else if (type === 'exhale') {
+      // Getar panjang turun — seperti hembuskan pelan
+      // Pattern: getar kuat lalu lembut
+      navigator.vibrate([300, 50, 200, 50, 100]);
+    }
+  } catch(e) {
+    // Vibration tidak didukung (desktop), tidak apa-apa
+  }
 }
 
 function runCountdown() {
